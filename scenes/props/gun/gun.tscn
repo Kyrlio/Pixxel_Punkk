@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://b64fl70f14eq4"]
+
+[ext_resource type="Texture2D" uid="uid://c2tl7rw1wacce" path="res://assets/characters/player/gun/gun.png" id="1_knwv5"]
+[ext_resource type="Script" uid="uid://c0ye8ep1as0v7" path="res://scenes/props/gun/gun.gd" id="1_vfssx"]
+
+[node name="Gun" type="Node2D" unique_id=1523867460]
+rotation = 0.007095856
+script = ExtResource("1_vfssx")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=310121796]
+position = Vector2(1.9857581, -2.0141413)
+texture = ExtResource("1_knwv5")
+hframes = 2

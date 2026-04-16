@@ -1,0 +1,159 @@
+[gd_scene format=3 uid="uid://dtm267ungrnsi"]
+
+[ext_resource type="Texture2D" uid="uid://b4djshr3us4nt" path="res://assets/fx/particles.png" id="1_gwyfo"]
+[ext_resource type="Texture2D" uid="uid://q12cikc25t1t" path="res://resources/spotlight.tres" id="2_k6kvo"]
+
+[sub_resource type="Animation" id="Animation_yd353"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GPUParticles2D:emitting")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("PointLight2D:enabled")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("PointLight2D:texture_scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+
+[sub_resource type="Animation" id="Animation_jy0yx"]
+resource_name = "default"
+length = 0.5
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GPUParticles2D:emitting")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("PointLight2D:enabled")
+tracks/2/interp = 0
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("PointLight2D:texture_scale")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.2),
+"transitions": PackedFloat32Array(0.5, 2, 1),
+"update": 0,
+"values": [0.01, 1.0, 0.01]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_nmupr"]
+_data = {
+&"RESET": SubResource("Animation_yd353"),
+&"default": SubResource("Animation_jy0yx")
+}
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ft8sa"]
+particles_animation = true
+particles_anim_h_frames = 4
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Curve" id="Curve_3ftlu"]
+_data = [Vector2(0.034383953, 0), 0.0, 0.0, 0, 0, Vector2(0.26647562, 1), 0.0, 0.0, 0, 0, Vector2(0.49283665, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -5.1582785, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_52c4g"]
+curve = SubResource("Curve_3ftlu")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_khrqf"]
+lifetime_randomness = 1.0
+particle_flag_disable_z = true
+angle_min = -720.0
+angle_max = 720.0
+direction = Vector3(1, -1, 0)
+spread = 70.0
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+angular_velocity_min = -720.0
+angular_velocity_max = 719.99994
+gravity = Vector3(0, 700, 0)
+scale_min = 0.19999999
+scale_max = 0.39999998
+scale_curve = SubResource("CurveTexture_52c4g")
+anim_offset_max = 1.0
+
+[node name="EnvironmentImpactParticles" type="Node2D" unique_id=1210545151]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=287033382]
+libraries/ = SubResource("AnimationLibrary_nmupr")
+autoplay = &"default"
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=826324714]
+modulate = Color(2.1168277, 2.1168277, 2.1168277, 1)
+material = SubResource("CanvasItemMaterial_ft8sa")
+scale = Vector2(1.3052791, 1.1254275)
+emitting = false
+amount = 3
+texture = ExtResource("1_gwyfo")
+lifetime = 0.3
+one_shot = true
+explosiveness = 0.9
+fixed_fps = 0
+interpolate = false
+process_material = SubResource("ParticleProcessMaterial_khrqf")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=778129541]
+color = Color(0.64705884, 0.59607846, 0.83137256, 1)
+energy = 2.0
+texture = ExtResource("2_k6kvo")

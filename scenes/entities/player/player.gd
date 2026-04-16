@@ -1,0 +1,435 @@
+class_name Player extends CharacterBody2D
+
+enum STATE {
+	FALL,
+	FLOOR,
+	JUMP,
+	DOUBLE_JUMP,
+	WALL_SLIDE,
+	WALL_JUMP,
+	ROLL,
+	HARD_LANDING,
+}
+
+const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
+const BULLET_SCENE = preload("uid://c2h20l1u8lgb6")
+
+const RUN_VELOCITY := 100.0
+const GROUND_ACCELERATION := 1000.0
+const GROUND_FRICTION := 1500.0
+
+const FALL_GRAVITY := 1200.0
+const FALL_VELOCITY := 600.0
+const JUMP_VELOCITY := -250.0
+const DOUBLE_JUMP_VELOCITY := -300.0
+const JUMP_HOLD_GRAVITY := 900.0
+const JUMP_CUT_GRAVITY := 1800.0
+const AIR_ACCELERATION := 900.0
+const AIR_FRICTION := 300.0
+
+const LANDING_SQUISH_DURATION := 0.08
+const LANDING_SQUISH_RECOVER_DURATION := 0.11
+const LANDING_SPRITE_SQUISH := Vector2(1.3, 0.7)
+const LANDING_WEAPON_SQUISH := Vector2(1.15, 0.85)
+
+const FIRING_SQUISH_DURATION := 0.05
+const FIRING_SQUISH_RECOVER_DURATION := 0.15
+const FIRING_SPRITE_SQUISH := Vector2(1.2, 0.8)
+
+const WALL_SLIDE_GRAVITY := 150.0
+const WALL_SLIDE_VELOCITY := 200.0
+const WALL_JUMP_LENGTH := 8.0
+const WALL_JUMP_VELOCITY := -250.0
+
+const ROLL_LENGTH := 80.0
+const ROLL_VELOCITY := 400.0
+
+const BULLET_DAMAGE: int = 5
+
+@onready var visuals: Node2D = %Visuals
+@onready var sprite: Sprite2D = %Sprite2D
+@onready var coyote_timer: Timer = %CoyoteTimer
+@onready var roll_cooldown: Timer = %RollCooldown
+@onready var player_collider: CollisionShape2D = %PlayerCollider
+@onready var animation_player: AnimationPlayer = %AnimationPlayer
+@onready var weapon_animation_player: AnimationPlayer = $WeaponAnimationPlayer
+@onready var weapon_root: Node2D = %WeaponRoot
+@onready var weapon_animation_root: Node2D = $Visuals/WeaponRoot/WeaponAnimationRoot
+@onready var fire_rate_timer: Timer = %FireRateTimer
+@onready var barrel_position: Marker2D = %BarrelPosition
+@onready var hard_landing_timer: Timer = %HardLandingTimer
+@onready var wall_slide_raycast: RayCast2D = %WallSlideRaycast
+@onready var wall_slide_raycast_2: RayCast2D = %WallSlideRaycast2
+
+var active_state: STATE = STATE.FALL
+var facing_direction := 1.0
+var saved_position: Vector2 = Vector2.ZERO
+var hard_landing: bool = false
+
+var can_double_jump: bool = false
+var can_roll: bool = false
+var can_fire: bool = true
+var can_move: bool = true
+var wait_for_double_jump_animation_to_finish: bool = false
+var is_wall_sliding: bool = false
+
+var firing_tween: Tween
+var landing_tween: Tween
+
+func _ready() -> void:
+	switch_state(active_state)
+	animation_player.animation_finished.connect(_on_animation_finished)
+
+
+func _process(delta: float) -> void:
+	update_facing_from_mouse()
+	gather_attack_input()
+	_process_state(delta)
+	move_and_slide()
+
+
+func switch_state(to_state: STATE) -> void:
+	var previous_state := active_state
+	active_state = to_state
+	
+	match active_state:
+		STATE.FALL:
+			weapon_root.visible = true
+			can_fire = true
+			is_wall_sliding = false
+			if animation_player.current_animation != "falling":
+				animation_player.play("falling")
+			if previous_state == STATE.FLOOR:
+				coyote_timer.start()
+		
+		STATE.FLOOR:
+			weapon_root.visible = true
+			can_double_jump = true
+			can_roll = true
+			can_fire = true
+			is_wall_sliding = false
+			velocity.y = 0
+			coyote_timer.stop()
+			
+			if previous_state == STATE.FALL or previous_state == STATE.DOUBLE_JUMP:
+				if hard_landing:
+					switch_state(STATE.HARD_LANDING)
+				else:
+					play_landing_squish()
+		
+		STATE.JUMP:
+			weapon_root.visible = true
+			can_fire = true
+			is_wall_sliding = false
+			animation_player.play("jump")
+			begin_air_jump(JUMP_VELOCITY)
+		
+		STATE.DOUBLE_JUMP:
+			#weapon_root.visible = false
+			#can_fire = false
+			is_wall_sliding = false
+			animation_player.play("double_jump")
+			wait_for_double_jump_animation_to_finish = true
+			begin_air_jump(DOUBLE_JUMP_VELOCITY, true)
+		
+		STATE.ROLL:
+			is_wall_sliding = false
+			if roll_cooldown.time_left > 0:
+				active_state = previous_state
+				return
+			#animation_player.play("roll")
+			velocity.y = 0
+		
+		STATE.HARD_LANDING:
+			is_wall_sliding = false
+			can_move = false
+			hard_landing = false
+			velocity = Vector2.ZERO
+			play_hard_landing_squish()
+			animation_player.play("RESET")
+			hard_landing_timer.start()
+		
+		STATE.WALL_SLIDE:
+			is_wall_sliding = true
+			can_double_jump = true
+			animation_player.play("wall_slide")
+			velocity.y = 0
+			# Orienter le sprite vers le mur
+			var wall_dir = get_wall_direction()
+			visuals.scale = Vector2.ONE if wall_dir > 0 else Vector2(-1, 1)
+		
+		STATE.WALL_JUMP:
+			animation_player.play("jump")
+			velocity.y = WALL_JUMP_VELOCITY
+			saved_position = position
+
+
+func _process_state(delta: float) -> void:
+	match active_state:
+		STATE.FALL:
+			velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
+			handle_movement(delta)
+			
+			if velocity.y >= FALL_VELOCITY:
+				hard_landing = true
+			
+			if is_on_floor():
+				switch_state(STATE.FLOOR)
+			elif Input.is_action_just_pressed("jump"):
+				if coyote_timer.time_left > 0:
+					switch_state(STATE.JUMP)
+				elif can_double_jump:
+					switch_state(STATE.DOUBLE_JUMP)
+			elif (is_input_toward_facing() or is_input_against_facing()) and can_wall_slide():
+				switch_state(STATE.WALL_SLIDE)
+		
+		STATE.FLOOR:
+			if Input.get_axis("move_left", "move_right"):
+				animation_player.play("run")
+			else:
+				animation_player.play("idle")
+			handle_movement(delta)
+			
+			if not is_on_floor():
+				switch_state(STATE.FALL)
+			elif Input.is_action_just_pressed("jump"):
+				switch_state(STATE.JUMP)
+		
+		STATE.JUMP, STATE.DOUBLE_JUMP, STATE.WALL_JUMP:
+			if active_state == STATE.DOUBLE_JUMP:
+				apply_double_jump_gravity(delta)
+			else:
+				apply_jump_gravity(delta)
+			
+			#velocity.y = move_toward(velocity.y, 0, JUMP_HOLD_GRAVITY * delta)
+			
+			if active_state == STATE.WALL_JUMP:
+				var distance := absf(position.x - saved_position.x)
+				if distance >= WALL_JUMP_LENGTH:
+					active_state = STATE.JUMP
+				else:
+					handle_movement(delta, get_wall_direction())
+			else:
+				handle_movement(delta)
+			
+			if is_on_floor():
+				switch_state(STATE.FLOOR)
+			elif velocity.y >= 0 and active_state == STATE.JUMP:
+				switch_state(STATE.FALL)
+			elif active_state == STATE.JUMP and Input.is_action_just_pressed("jump"):
+				switch_state(STATE.DOUBLE_JUMP)
+		
+		STATE.WALL_SLIDE:
+			velocity.y = minf(velocity.y + WALL_SLIDE_GRAVITY * delta, WALL_SLIDE_VELOCITY)
+			#velocity.y = move_toward(velocity.y, WALL_SLIDE_VELOCITY, WALL_SLIDE_GRAVITY * delta)
+			handle_movement(delta)
+			
+			if is_on_floor():
+				switch_state(STATE.FLOOR)
+			elif not can_wall_slide():
+				switch_state(STATE.FALL)
+			if Input.is_action_just_pressed("jump"):
+				switch_state(STATE.WALL_JUMP)
+
+
+## Vérifie si le joueur peut glisser le long d'un mur
+## Retourne true si :
+## - Le joueur est en contact avec un mur uniquement (pas au sol)
+## - Le raycast de wall slide détecte une collision
+func can_wall_slide() -> bool:
+	return is_on_wall_only() and (wall_slide_raycast.is_colliding() or wall_slide_raycast_2.is_colliding())
+
+
+func gather_attack_input() -> void:
+	if Input.is_action_pressed("fire"):
+		try_fire()
+
+
+func play_landing_squish() -> void:
+	if landing_tween != null and landing_tween.is_running():
+		landing_tween.kill()
+	
+	GameCamera.shake(1) 
+	
+	landing_tween = create_tween()
+	landing_tween.set_parallel(true)
+	landing_tween.set_trans(Tween.TRANS_QUAD)
+	landing_tween.set_ease(Tween.EASE_OUT)
+	landing_tween.tween_property(sprite, "scale", LANDING_SPRITE_SQUISH, LANDING_SQUISH_DURATION)
+	landing_tween.tween_property(weapon_animation_root, "scale", LANDING_WEAPON_SQUISH, LANDING_SQUISH_DURATION)
+
+	landing_tween.set_parallel(false)
+	landing_tween.set_trans(Tween.TRANS_QUAD)
+	landing_tween.set_ease(Tween.EASE_OUT)
+	landing_tween.tween_property(sprite, "scale", Vector2.ONE, LANDING_SQUISH_RECOVER_DURATION)
+	landing_tween.tween_property(weapon_animation_root, "scale", Vector2.ONE, LANDING_SQUISH_RECOVER_DURATION)
+
+
+func play_hard_landing_squish() -> void:
+	if landing_tween != null and landing_tween.is_running():
+		landing_tween.kill()
+	
+	GameCamera.shake(10)
+	
+	landing_tween = create_tween()
+	landing_tween.set_parallel(true)
+	landing_tween.set_trans(Tween.TRANS_QUAD)
+	landing_tween.set_ease(Tween.EASE_OUT)
+	landing_tween.tween_property(sprite, "scale", LANDING_SPRITE_SQUISH - Vector2(0.2, 0.2), LANDING_SQUISH_DURATION)
+	landing_tween.tween_property(weapon_animation_root, "scale", LANDING_WEAPON_SQUISH - Vector2(0.2, 0.2), LANDING_SQUISH_DURATION)
+	
+	landing_tween.set_parallel(false)
+	landing_tween.set_trans(Tween.TRANS_QUAD)
+	landing_tween.set_ease(Tween.EASE_OUT)
+	landing_tween.tween_property(sprite, "scale", Vector2.ONE, LANDING_SQUISH_RECOVER_DURATION + 0.5)
+	landing_tween.tween_property(weapon_animation_root, "scale", Vector2.ONE, LANDING_SQUISH_RECOVER_DURATION + 0.5)
+
+
+func begin_air_jump(jump_velocity: float, consume_double_jump: bool = false) -> void:
+	velocity.y = jump_velocity
+	coyote_timer.stop()
+	if consume_double_jump:
+		can_double_jump = false
+
+
+func apply_jump_gravity(delta: float) -> void:
+	var gravity := FALL_GRAVITY
+	if velocity.y < 0.0:
+		gravity = JUMP_HOLD_GRAVITY if Input.is_action_pressed("jump") else JUMP_CUT_GRAVITY
+	velocity.y = minf(velocity.y + gravity * delta, FALL_VELOCITY)
+
+
+func apply_double_jump_gravity(delta: float) -> void:
+	velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
+
+
+func try_fire() -> void:
+	if not fire_rate_timer.is_stopped() or not can_fire:
+		return
+	
+	var bullet : Bullet = BULLET_SCENE.instantiate()
+	bullet.damage = get_bullet_damage()
+	#bullet.global_position = weapon_root.global_position
+	bullet.global_position = barrel_position.global_position
+	bullet.start(get_aim_vector())
+	get_parent().add_child(bullet, true)
+	
+	fire_rate_timer.start()
+	
+	play_fire_effects()
+
+
+func play_fire_effects() -> void:
+	if weapon_animation_player.is_playing():
+		weapon_animation_player.stop()
+	weapon_animation_player.play("fire")
+	
+	if firing_tween != null and firing_tween.is_running():
+		firing_tween.kill()
+	firing_tween = create_tween()
+	firing_tween.set_parallel(true)
+	firing_tween.set_trans(Tween.TRANS_QUAD)
+	firing_tween.set_ease(Tween.EASE_OUT)
+	firing_tween.tween_property(sprite, "scale", FIRING_SPRITE_SQUISH, FIRING_SQUISH_DURATION)
+	
+	firing_tween.set_parallel(false)
+	firing_tween.set_trans(Tween.TRANS_QUAD)
+	firing_tween.set_ease(Tween.EASE_OUT)
+	firing_tween.tween_property(sprite, "scale", Vector2.ONE, FIRING_SQUISH_RECOVER_DURATION)
+	firing_tween.tween_property(weapon_animation_root, "scale", Vector2.ONE, FIRING_SQUISH_RECOVER_DURATION)
+	
+	var muzzle_flash: Node2D = MUZZLE_FLASH_SCENE.instantiate()
+	muzzle_flash.global_position = barrel_position.global_position
+	muzzle_flash.rotation = barrel_position.global_rotation
+	get_parent().add_child(muzzle_flash)
+	
+	GameCamera.shake(1)
+
+
+## Gère le déplacement horizontal du joueur avec accélération et friction.
+func handle_movement(delta: float, input_direction: float = 0, horizontal_velocity: float = RUN_VELOCITY) -> void:
+	if not can_move:
+		return
+	
+	if input_direction == 0:
+		input_direction = signf(Input.get_axis("move_left", "move_right"))
+	
+	var acceleration := AIR_ACCELERATION
+	var friction := AIR_FRICTION
+	if is_on_floor():
+		acceleration = GROUND_ACCELERATION
+		friction = GROUND_FRICTION
+
+	var target_velocity_x := input_direction * horizontal_velocity
+	if input_direction != 0:
+		velocity.x = move_toward(velocity.x, target_velocity_x, acceleration * delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+
+
+func update_facing_from_mouse() -> void:
+	var aim_vector = get_aim_vector()
+	var aim_position: Vector2 = weapon_root.global_position + aim_vector
+	weapon_root.look_at(aim_position)
+	
+	# Ne pas retourner le sprite pendant un wall_slide pour éviter de casser l'animation
+	# L'arme se tournera quand même avec look_at() sans modifier la scale du joueur
+	if not is_wall_sliding:
+		visuals.scale = Vector2.ONE if aim_vector.x >= 0 else Vector2(-1, 1)
+
+
+## Vérifie si le joueur appuie sur la direction vers laquelle il regarde
+## Retourne true si la direction d'entrée (gauche/droite) correspond à la direction de face actuelle
+func is_input_toward_facing() -> bool:
+	return signf(Input.get_axis("move_left", "move_right")) == facing_direction
+
+
+func is_input_against_facing() -> bool:
+	return signf(Input.get_axis("move_left", "move_right")) == -facing_direction
+
+
+func get_aim_vector() -> Vector2:
+	return (get_global_mouse_position() - global_position).normalized()
+
+
+func get_bullet_damage() -> int:
+	return BULLET_DAMAGE
+
+
+func _on_animation_finished(_anim_name: String) -> void:
+	if _anim_name == "double_jump":
+		wait_for_double_jump_animation_to_finish = false
+		if is_on_floor():
+			switch_state(STATE.FLOOR)
+		else:
+			switch_state(STATE.FALL)
+
+
+## Déterminer de quel côté du joueur se trouve le mur
+## Retourne 1 si le mur est à droite, -1 si le mur est à gauche
+func get_wall_direction() -> int:
+	# Vérifier les collisions du CharacterBody2D pour déterminer le côté du mur
+	for i in range(get_slide_collision_count()):
+		var collision = get_slide_collision(i)
+		var normal = collision.get_normal()
+		# Une collision murale a une normale horizontale
+		if abs(normal.y) < 0.5 and normal.x != 0:
+			# normal.x positif = mur à droite, négatif = mur à gauche
+			return 1 if normal.x > 0 else -1
+	
+	# Fallback : utiliser la direction du dernier mouvement
+	# ou les raycast pour déterminer le côté
+	if wall_slide_raycast.is_colliding() and not wall_slide_raycast_2.is_colliding():
+		# Supposer que raycast pointe à droite (à vérifier selon votre scène)
+		return -1
+	elif wall_slide_raycast_2.is_colliding() and not wall_slide_raycast.is_colliding():
+		# Supposer que raycast_2 pointe à gauche
+		return 1
+	
+	# Dernier fallback
+	return 1 if velocity.x >= 0 else -1
+
+
+func _on_hard_landing_timer_timeout() -> void:
+	can_move = true
+	switch_state(STATE.FLOOR)
