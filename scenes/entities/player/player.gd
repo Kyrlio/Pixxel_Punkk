@@ -228,7 +228,7 @@ func _process_state(delta: float) -> void:
 				switch_state(STATE.FLOOR)
 			elif not can_wall_slide():
 				switch_state(STATE.FALL)
-			if Input.is_action_just_pressed("jump"):
+			elif Input.is_action_just_pressed("jump"):
 				switch_state(STATE.WALL_JUMP)
 
 
@@ -238,6 +238,19 @@ func _process_state(delta: float) -> void:
 ## - Le raycast de wall slide détecte une collision
 func can_wall_slide() -> bool:
 	return is_on_wall_only() and (wall_slide_raycast.is_colliding() or wall_slide_raycast_2.is_colliding())
+
+
+## Calcule l'offset de positionnement après un ledge climb
+## Basé sur les dimensions du collider du joueur
+## - X : déplace le joueur à côté du rebord (diamètre * 2.7)
+## - Y : remonte le joueur au-dessus du rebord (hauteur / 2)
+## Retourne Vector2.ZERO si le collider n'est pas une CircleShape2D
+func ledge_climb_offset() -> Vector2:
+	var shape := player_collider.shape
+	if shape is CircleShape2D:
+		var move_player: Vector2 = Vector2(shape.radius * 3.6, -shape.radius * 0.5)
+		return move_player
+	return Vector2.ZERO
 
 
 func gather_attack_input() -> void:
@@ -383,7 +396,8 @@ func update_facing_from_mouse() -> void:
 func is_input_toward_facing() -> bool:
 	return signf(Input.get_axis("move_left", "move_right")) == facing_direction
 
-
+## Vérifie si le joueur appuie sur la direction inverse vers laquelle il regarde
+## Retourne true si la direction d'entrée (gauche/droite) ne correspond pas à la direction de face actuelle
 func is_input_against_facing() -> bool:
 	return signf(Input.get_axis("move_left", "move_right")) == -facing_direction
 

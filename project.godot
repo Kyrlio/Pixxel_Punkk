@@ -11,13 +11,17 @@ config_version=5
 [application]
 
 config/name="PixxelPunkk"
-run/main_scene="uid://bik3ydtoi620s"
+run/main_scene="uid://bh7uxdmtvmyk0"
 config/features=PackedStringArray("4.6", "Mobile")
 boot_splash/bg_color=Color(0.1254902, 0.12941177, 0.2901961, 1)
 boot_splash/stretch_mode=0
 boot_splash/use_filter=false
 boot_splash/image="uid://bnw0ms1mkc1ke"
 config/icon="uid://bnw0ms1mkc1ke"
+
+[autoload]
+
+GameEvents="*uid://ek1sdrx2emj"
 
 [display]
 
@@ -37,6 +41,10 @@ folder_colors={
 "res://resources/": "purple",
 "res://scenes/": "blue"
 }
+
+[global_group]
+
+player=""
 
 [input]
 
@@ -78,6 +86,7 @@ right_click={
 2d_physics/layer_1="Terrain"
 2d_physics/layer_2="EnemyCharacterBody"
 2d_physics/layer_3="Enemy"
+2d_physics/layer_5="TerrainLedge"
 2d_physics/layer_9="Bullet"
 
 [physics]
