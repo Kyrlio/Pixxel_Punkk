@@ -7,13 +7,11 @@ const SPEED: int = 300
 @onready var hitbox_component: HitboxComponent = $HitboxComponent
 
 var direction: Vector2
-var source_peer_id: int
 var damage: int = 1
 
 
 func _ready() -> void:
 	hitbox_component.damage = damage
-	hitbox_component.source_peer_id = source_peer_id
 	hitbox_component.hit_hurtbox.connect(_on_hit_hurtbox)
 	life_timer.timeout.connect(_on_life_timer_timeout)
 
@@ -29,6 +27,7 @@ func start(dir: Vector2) -> void:
 
 func register_collision() -> void:
 	hitbox_component.is_hit_handled = true
+	GameCamera.shake(1)
 	queue_free()
 
 

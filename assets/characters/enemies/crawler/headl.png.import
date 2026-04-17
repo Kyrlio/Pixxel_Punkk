@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dk3rs8pgnr0v0"
-path="res://.godot/imported/peace-ke3per.png-fb629a41a508e1d87410e6cf51d6e996.ctex"
+uid="uid://c8vjxcvl6htek"
+path="res://.godot/imported/headl.png-c0cd2375d94ebadafe5a2bcc1503d723.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/enemies/peace-ke3per.png"
-dest_files=["res://.godot/imported/peace-ke3per.png-fb629a41a508e1d87410e6cf51d6e996.ctex"]
+source_file="res://assets/characters/enemies/crawler/headl.png"
+dest_files=["res://.godot/imported/headl.png-c0cd2375d94ebadafe5a2bcc1503d723.ctex"]
 
 [params]
 

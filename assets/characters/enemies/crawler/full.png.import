@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://8h05vnvoky0x"
-path="res://.godot/imported/he2d-hunter.png-a5c0c32973232dff4326d71b0de4ea52.ctex"
+uid="uid://ccfgy7h4210qn"
+path="res://.godot/imported/full.png-384ff169b629d9c6d38f459c50305fb3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/enemies/he2d-hunter.png"
-dest_files=["res://.godot/imported/he2d-hunter.png-a5c0c32973232dff4326d71b0de4ea52.ctex"]
+source_file="res://assets/characters/enemies/crawler/full.png"
+dest_files=["res://.godot/imported/full.png-384ff169b629d9c6d38f459c50305fb3.ctex"]
 
 [params]
 

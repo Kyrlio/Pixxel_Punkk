@@ -83,11 +83,12 @@ right_click={
 
 [layer_names]
 
-2d_physics/layer_1="Terrain"
-2d_physics/layer_2="EnemyCharacterBody"
+2d_physics/layer_1="Environment"
+2d_physics/layer_2="Player"
 2d_physics/layer_3="Enemy"
-2d_physics/layer_5="TerrainLedge"
 2d_physics/layer_9="Bullet"
+2d_physics/layer_10="PlayerHurtbox"
+2d_physics/layer_11="EnemyHurtbox"
 
 [physics]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://db34uttvxpyca"
-path="res://.godot/imported/h0arder.png-f1302af2dc1decd17b2093b7e4f427fd.ctex"
+uid="uid://dk3rs8pgnr0v0"
+path="res://.godot/imported/peace-ke3per.png-2b77460035b21888aebaa3c91a58df1d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/enemies/h0arder.png"
-dest_files=["res://.godot/imported/h0arder.png-f1302af2dc1decd17b2093b7e4f427fd.ctex"]
+source_file="res://assets/characters/peace-ke3per.png"
+dest_files=["res://.godot/imported/peace-ke3per.png-2b77460035b21888aebaa3c91a58df1d.ctex"]
 
 [params]
 

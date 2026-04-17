@@ -9,6 +9,7 @@ enum STATE {
 	WALL_JUMP,
 	ROLL,
 	HARD_LANDING,
+	DEAD,
 }
 
 const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
@@ -44,7 +45,7 @@ const WALL_JUMP_VELOCITY := -250.0
 const ROLL_LENGTH := 80.0
 const ROLL_VELOCITY := 400.0
 
-const BULLET_DAMAGE: int = 5
+const BULLET_DAMAGE: int = 1
 
 @onready var visuals: Node2D = %Visuals
 @onready var sprite: Sprite2D = %Sprite2D
@@ -60,6 +61,8 @@ const BULLET_DAMAGE: int = 5
 @onready var hard_landing_timer: Timer = %HardLandingTimer
 @onready var wall_slide_raycast: RayCast2D = %WallSlideRaycast
 @onready var wall_slide_raycast_2: RayCast2D = %WallSlideRaycast2
+@onready var health_component: HealthComponent = %HealthComponent
+@onready var hurtbox_component: HurtboxComponent = %HurtboxComponent
 
 var active_state: STATE = STATE.FALL
 var facing_direction := 1.0
@@ -79,6 +82,8 @@ var landing_tween: Tween
 func _ready() -> void:
 	switch_state(active_state)
 	animation_player.animation_finished.connect(_on_animation_finished)
+	health_component.died.connect(_on_died)
+	health_component.damaged.connect(_on_damaged)
 
 
 func _process(delta: float) -> void:
@@ -162,6 +167,13 @@ func switch_state(to_state: STATE) -> void:
 			animation_player.play("jump")
 			velocity.y = WALL_JUMP_VELOCITY
 			saved_position = position
+		
+		STATE.DEAD:
+			GameCamera.shake(100)
+			can_move = false
+			velocity = Vector2.ZERO
+			GameEvents.emit_engine_freeze()
+			animation_player.play("death")
 
 
 func _process_state(delta: float) -> void:
@@ -447,3 +459,12 @@ func get_wall_direction() -> int:
 func _on_hard_landing_timer_timeout() -> void:
 	can_move = true
 	switch_state(STATE.FLOOR)
+
+
+func _on_died() -> void:
+	switch_state(STATE.DEAD)
+
+
+func _on_damaged() -> void:
+	GameEvents.emit_engine_freeze()
+	GameCamera.shake(1)

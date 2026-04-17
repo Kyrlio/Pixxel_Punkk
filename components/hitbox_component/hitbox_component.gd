@@ -4,9 +4,9 @@ extends Area2D
 signal hit_hurtbox(hurtbox_component: HurtboxComponent)
 
 var damage: int = 1
-var source_peer_id: int
 var is_hit_handled: bool
 
 
 func register_hurtbox_hit(hurtbox_component: HurtboxComponent) -> void:
+	#print(get_parent(), "HitboxComponent : ", hurtbox_component)
 	hit_hurtbox.emit(hurtbox_component)
