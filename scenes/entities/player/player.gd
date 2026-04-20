@@ -21,10 +21,10 @@ const GROUND_FRICTION := 1500.0
 
 const FALL_GRAVITY := 1200.0
 const FALL_VELOCITY := 600.0
-const JUMP_VELOCITY := -250.0
-const DOUBLE_JUMP_VELOCITY := -300.0
+const JUMP_VELOCITY := -225.0
+const DOUBLE_JUMP_VELOCITY := -250.0
 const JUMP_HOLD_GRAVITY := 900.0
-const JUMP_CUT_GRAVITY := 1800.0
+const JUMP_CUT_GRAVITY := 1900.0
 const AIR_ACCELERATION := 900.0
 const AIR_FRICTION := 300.0
 
@@ -37,6 +37,12 @@ const FIRING_SQUISH_DURATION := 0.05
 const FIRING_SQUISH_RECOVER_DURATION := 0.15
 const FIRING_SPRITE_SQUISH := Vector2(1.2, 0.8)
 
+const RECOIL_FORCE := 70.0
+const RECOIL_AIR_MULT := 1.0
+const RECOIL_GROUND_MULT := 0.75
+const RECOIL_MAX_X := 260.0
+const RECOIL_MAX_Y := 350.0
+
 const WALL_SLIDE_GRAVITY := 150.0
 const WALL_SLIDE_VELOCITY := 200.0
 const WALL_JUMP_LENGTH := 8.0
@@ -45,7 +51,6 @@ const WALL_JUMP_VELOCITY := -250.0
 const ROLL_LENGTH := 80.0
 const ROLL_VELOCITY := 400.0
 
-const BULLET_DAMAGE: int = 1
 
 @onready var visuals: Node2D = %Visuals
 @onready var sprite: Sprite2D = %Sprite2D
@@ -63,6 +68,8 @@ const BULLET_DAMAGE: int = 1
 @onready var wall_slide_raycast_2: RayCast2D = %WallSlideRaycast2
 @onready var health_component: HealthComponent = %HealthComponent
 @onready var hurtbox_component: HurtboxComponent = %HurtboxComponent
+
+@export var bullet_damage: int = 1
 
 var active_state: STATE = STATE.FALL
 var facing_direction := 1.0
@@ -169,7 +176,7 @@ func switch_state(to_state: STATE) -> void:
 			saved_position = position
 		
 		STATE.DEAD:
-			GameCamera.shake(100)
+			GameCamera.shake(1)
 			can_move = false
 			velocity = Vector2.ZERO
 			GameEvents.emit_engine_freeze()
@@ -274,7 +281,7 @@ func play_landing_squish() -> void:
 	if landing_tween != null and landing_tween.is_running():
 		landing_tween.kill()
 	
-	GameCamera.shake(1) 
+	GameCamera.shake(0.5) 
 	
 	landing_tween = create_tween()
 	landing_tween.set_parallel(true)
@@ -294,7 +301,8 @@ func play_hard_landing_squish() -> void:
 	if landing_tween != null and landing_tween.is_running():
 		landing_tween.kill()
 	
-	GameCamera.shake(10)
+	GameCamera.shake(1)
+	GameCamera.bump_zoom(Vector2(1.1, 1.1), 0.15, 0.75)
 	
 	landing_tween = create_tween()
 	landing_tween.set_parallel(true)
@@ -341,7 +349,23 @@ func try_fire() -> void:
 	
 	fire_rate_timer.start()
 	
+	apply_recoil()
+	
 	play_fire_effects()
+
+
+func apply_recoil() -> void:
+	var aim := get_aim_vector()
+	if aim == Vector2.ZERO:
+		return
+	
+	var recoil_dir := -aim.normalized()
+	var mult := RECOIL_GROUND_MULT if is_on_floor() else RECOIL_AIR_MULT
+	var impulse := recoil_dir * RECOIL_FORCE * mult
+	
+	velocity += impulse
+	velocity.x = clamp(velocity.x, -RECOIL_MAX_X, RECOIL_MAX_X)
+	velocity.y = clamp(velocity.y, -RECOIL_MAX_Y, RECOIL_MAX_Y)
 
 
 func play_fire_effects() -> void:
@@ -368,7 +392,7 @@ func play_fire_effects() -> void:
 	muzzle_flash.rotation = barrel_position.global_rotation
 	get_parent().add_child(muzzle_flash)
 	
-	GameCamera.shake(1)
+	GameCamera.shake(0.5)
 
 
 ## Gère le déplacement horizontal du joueur avec accélération et friction.
@@ -419,7 +443,7 @@ func get_aim_vector() -> Vector2:
 
 
 func get_bullet_damage() -> int:
-	return BULLET_DAMAGE
+	return bullet_damage
 
 
 func _on_animation_finished(_anim_name: String) -> void:
@@ -467,4 +491,4 @@ func _on_died() -> void:
 
 func _on_damaged() -> void:
 	GameEvents.emit_engine_freeze()
-	GameCamera.shake(1)
+	GameCamera.shake(0.9)

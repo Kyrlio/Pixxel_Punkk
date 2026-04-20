@@ -1,10 +1,11 @@
 [gd_scene format=3 uid="uid://c8p7h7b8dvdiv"]
 
-[ext_resource type="Script" uid="uid://bt42f0u34hync" path="res://scenes/entities/ground_enemy/ground_enemy.gd" id="1_3h2ed"]
+[ext_resource type="Script" uid="uid://bt42f0u34hync" path="res://scenes/entities/enemies/ground_enemy/ground_enemy.gd" id="1_3h2ed"]
 [ext_resource type="Script" uid="uid://tfp07ctg4sf3" path="res://components/hurtbox_component/hurtbox_component.gd" id="1_xdvck"]
 [ext_resource type="Script" uid="uid://dbwopvptbmy1s" path="res://components/health_component/health_component.gd" id="2_1r6if"]
 [ext_resource type="Script" uid="uid://dwutdrsq74sb2" path="res://components/hitbox_component/hitbox_component.gd" id="3_3h2ed"]
 [ext_resource type="Texture2D" uid="uid://dvyd848therxi" path="res://assets/characters/enemies/crawler/crawler.png" id="4_mmea5"]
+[ext_resource type="Shader" uid="uid://dtfdwv8q5xwyj" path="res://resources/shaders/hit_flash.tres" id="6_mmea5"]
 [ext_resource type="Texture2D" uid="uid://q12cikc25t1t" path="res://resources/spotlight.tres" id="7_mmea5"]
 
 [sub_resource type="Animation" id="Animation_87ifm"]
@@ -67,7 +68,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [0]
+"values": [2]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -81,11 +82,35 @@ tracks/5/keys = {
 "update": 1,
 "values": [true]
 }
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Visuals:material:shader_parameter/Enable")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Visuals:material:shader_parameter/ColorParameter")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1.1749643, 1.1749643, 1.1749643, 1)]
+}
 
 [sub_resource type="Animation" id="Animation_y4vhp"]
 resource_name = "death"
 length = 0.50000834
-step = 0.083333336
+step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -160,6 +185,30 @@ tracks/5/keys = {
 "update": 1,
 "values": [false]
 }
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Visuals:material:shader_parameter/Enable")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45000002, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [true, true, true, true, true, true, true, true, true, true, true]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Visuals:material:shader_parameter/ColorParameter")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(18.892157, 18.892157, 18.892157, 1)]
+}
 
 [sub_resource type="Animation" id="Animation_ivqlg"]
 resource_name = "default"
@@ -214,12 +263,151 @@ tracks/3/keys = {
 "update": 1,
 "values": [2]
 }
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Visuals/Treadmills:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Visuals:material:shader_parameter/Enable")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Visuals:material:shader_parameter/ColorParameter")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1.1749643, 1.1749643, 1.1749643, 1)]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_1r6if"]
 _data = {
 &"RESET": SubResource("Animation_87ifm"),
 &"death": SubResource("Animation_y4vhp"),
 &"default": SubResource("Animation_ivqlg")
+}
+
+[sub_resource type="Animation" id="Animation_mmea5"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals:material:shader_parameter/Enable")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals:material:shader_parameter/ColorParameter")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1.1749643, 1.1749643, 1.1749643, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/Head:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_ussy5"]
+resource_name = "hit"
+length = 0.2
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals:material:shader_parameter/Enable")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals:material:shader_parameter/ColorParameter")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(18.892157, 18.892157, 18.892157, 1)]
+}
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [false],
+"method": &"_can_move"
+}, {
+"args": [true],
+"method": &"_can_move"
+}]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Visuals/Head:scale")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1, 0.75), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2xo40"]
+_data = {
+&"RESET": SubResource("Animation_mmea5"),
+&"hit": SubResource("Animation_ussy5")
 }
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_87ifm"]
@@ -232,20 +420,32 @@ radius = 7.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_ivqlg"]
 radius = 6.0
 
-[node name="GroundEnemy" type="CharacterBody2D" unique_id=1934728974]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_y4vhp"]
+resource_local_to_scene = true
+shader = ExtResource("6_mmea5")
+shader_parameter/Enable = false
+shader_parameter/ColorParameter = Color(1.1749643, 1.1749643, 1.1749643, 1)
+
+[node name="GroundEnemy" type="CharacterBody2D" unique_id=1934728974 node_paths=PackedStringArray("health_component", "hurtbox_component", "hitbox_component")]
 collision_layer = 4
 collision_mask = 513
 script = ExtResource("1_3h2ed")
+health_component = NodePath("HealthComponent")
+hurtbox_component = NodePath("HurtboxComponent")
+hitbox_component = NodePath("HitboxComponent")
+health = 5
 
 [node name="HealthComponent" type="Node" parent="." unique_id=1570821650]
 unique_name_in_owner = true
 script = ExtResource("2_1r6if")
-max_health = 5
 metadata/_custom_type_script = "uid://dbwopvptbmy1s"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1277750446]
 libraries/ = SubResource("AnimationLibrary_1r6if")
 autoplay = &"default"
+
+[node name="HitFlashAnimationPlayer" type="AnimationPlayer" parent="." unique_id=2016822157]
+libraries/ = SubResource("AnimationLibrary_2xo40")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=339529243]
 position = Vector2(0, -2)
@@ -276,15 +476,19 @@ shape = SubResource("CircleShape2D_ivqlg")
 debug_color = Color(0.6961951, 0.49580985, 0, 0.41960785)
 
 [node name="Visuals" type="Node2D" parent="." unique_id=575267369]
+material = SubResource("ShaderMaterial_y4vhp")
 
 [node name="Head" type="Sprite2D" parent="Visuals" unique_id=208709832]
+use_parent_material = true
 texture = ExtResource("4_mmea5")
 offset = Vector2(0, -8)
 hframes = 6
 vframes = 2
+frame = 2
 region_rect = Rect2(16, 16, 16, 16)
 
 [node name="Treadmills" type="Sprite2D" parent="Visuals" unique_id=395344067]
+use_parent_material = true
 texture = ExtResource("4_mmea5")
 offset = Vector2(0, -8)
 hframes = 6

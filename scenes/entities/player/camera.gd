@@ -1,8 +1,8 @@
 @icon("uid://d1ugg8acbjdv6")
 class_name GameCamera extends Camera2D
 
-const NOISE_GROWTH: float = 750
-const SHAKE_DECAY_RATE: float = 10
+const NOISE_GROWTH: float = 250
+const SHAKE_DECAY_RATE: float = 1.8
 
 @onready var player: Player = $".."
 
@@ -23,6 +23,7 @@ var _current_lookahead_offset: Vector2 = Vector2.ZERO
 var noise_offset_x: float
 var noise_offset_y: float
 var current_shake_percentage: float
+var _zoom_tween: Tween
 
 
 func _ready() -> void:
@@ -63,6 +64,20 @@ func _calculate_mouse_lookahead_offset() -> Vector2:
 	
 	# Appliquer la distance de lookahead
 	return offset_direction * mouse_lookahead_distance
+
+
+static func bump_zoom(target_zoom: Vector2 = Vector2(0.92, 0.92), in_duration: float = 0.8, out_duration: float = 0.14) -> void:
+	if instance == null:
+		return
+	
+	if instance._zoom_tween != null and instance._zoom_tween.is_running():
+		instance._zoom_tween.kill()
+	
+	instance._zoom_tween = instance.create_tween()
+	instance._zoom_tween.set_trans(Tween.TRANS_QUAD)
+	instance._zoom_tween.set_ease(Tween.EASE_OUT)
+	instance._zoom_tween.tween_property(instance, "zoom", target_zoom, in_duration)
+	instance._zoom_tween.tween_property(instance, "zoom", Vector2.ONE, out_duration)
 
 
 static func shake(shake_percent: float) -> void:

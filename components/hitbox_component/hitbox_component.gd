@@ -8,5 +8,5 @@ var is_hit_handled: bool
 
 
 func register_hurtbox_hit(hurtbox_component: HurtboxComponent) -> void:
-	#print(get_parent(), "HitboxComponent : ", hurtbox_component)
+	is_hit_handled = true
 	hit_hurtbox.emit(hurtbox_component)

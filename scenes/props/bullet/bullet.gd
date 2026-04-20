@@ -27,7 +27,7 @@ func start(dir: Vector2) -> void:
 
 func register_collision() -> void:
 	hitbox_component.is_hit_handled = true
-	GameCamera.shake(1)
+	GameCamera.shake(0.5)
 	queue_free()
 
 

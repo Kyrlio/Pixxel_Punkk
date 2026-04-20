@@ -25,3 +25,11 @@ func damage(amount: int) -> void:
 	damaged.emit()
 	if current_health == 0:
 		died.emit()
+
+
+func set_max_health(value: int, refill: bool = true) -> void:
+	max_health = max(1, value)
+	if refill:
+		current_health = max_health
+	else:
+		current_health = clamp(current_health, 0, max_health)

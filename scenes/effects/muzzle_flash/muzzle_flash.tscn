@@ -163,6 +163,6 @@ autoplay = &"default"
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1408414183]
 color = Color(1, 0.5372549, 0, 1)
-energy = 1.5
+energy = 5.0
 texture = ExtResource("3_gurcj")
 texture_scale = 0.01

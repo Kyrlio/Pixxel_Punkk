@@ -1,24 +1,24 @@
 class_name GroundEnemy
-extends CharacterBody2D
+extends Enemy
 
-const GRAVITY: float = 500.0
 
-@onready var health_component: HealthComponent = %HealthComponent
 @onready var wall_detection_raycast: RayCast2D = %WallDetectionRaycast
 @onready var visuals: Node2D = $Visuals
-@onready var ledge_detection_raycast: RayCast2D = %LedgeDetectionRaycast
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
+@onready var hit_flash_animation_player: AnimationPlayer = $HitFlashAnimationPlayer
+@onready var ledge_detection_raycast: RayCast2D = %LedgeDetectionRaycast
 
-@export var speed: float = 20.0
+
 
 var direction: float = 1.0
-
-func _ready() -> void:
-	health_component.died.connect(_on_died)
-	health_component.damaged.connect(_on_damaged)
+var is_dead: bool = false
+var can_move: bool = true
 
 
 func _process(delta: float) -> void:
+	if is_dead or not can_move:
+		return
+	
 	_movement(delta)
 	_update_direction()
 	
@@ -27,7 +27,7 @@ func _process(delta: float) -> void:
 
 func _movement(delta) -> void:
 	velocity.x = speed * direction
-	velocity.y += GRAVITY * delta
+	velocity.y = GRAVITY * delta
 
 
 func _update_direction() -> void:
@@ -39,9 +39,14 @@ func _update_direction() -> void:
 
 
 func _on_damaged() -> void:
-	pass
+	hit_flash_animation_player.play("hit")
 
 
 func _on_died() -> void:
+	is_dead = true
 	velocity = Vector2.ZERO
 	animation_player.play("death")
+
+
+func _can_move(value: bool) -> void:
+	can_move = value

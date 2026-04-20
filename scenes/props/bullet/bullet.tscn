@@ -8,6 +8,10 @@
 radius = 4.0
 height = 14.0
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8qtdc"]
+radius = 2.0
+height = 10.0
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_8qtdc"]
 atlas = ExtResource("2_35c64")
 region = Rect2(80, 160, 16, 16)
@@ -71,13 +75,20 @@ autostart = true
 
 [node name="HitboxComponent" type="Area2D" parent="." unique_id=1906313826]
 collision_layer = 256
-collision_mask = 1025
+collision_mask = 1024
 script = ExtResource("1_xmxq7")
 metadata/_custom_type_script = "uid://dwutdrsq74sb2"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxComponent" unique_id=1788132122]
 rotation = -1.5707964
 shape = SubResource("CapsuleShape2D_bjna0")
+
+[node name="EnvironmentHitbox" type="Area2D" parent="." unique_id=1635820222]
+collision_layer = 256
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EnvironmentHitbox" unique_id=81212170]
+rotation = -1.5707964
+shape = SubResource("CapsuleShape2D_8qtdc")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=629127478]
 modulate = Color(1.353256, 1.353256, 1.353256, 1)
@@ -93,4 +104,4 @@ texture = SubResource("GradientTexture2D_8qtdc")
 libraries/ = SubResource("AnimationLibrary_6ulta")
 autoplay = &"default"
 
-[connection signal="body_entered" from="HitboxComponent" to="." method="_on_hitbox_component_body_entered"]
+[connection signal="body_entered" from="EnvironmentHitbox" to="." method="_on_hitbox_component_body_entered"]
