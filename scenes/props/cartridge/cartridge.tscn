@@ -14,6 +14,12 @@ script = ExtResource("1_403ya")
 speed_min = 200.0
 speed_max = 250.0
 
+[node name="SleepTimer" type="Timer" parent="." unique_id=648888307]
+process_callback = 0
+wait_time = 3.0
+one_shot = true
+autostart = true
+
 [node name="LifeTimer" type="Timer" parent="." unique_id=927942070]
 process_callback = 0
 wait_time = 10.0
@@ -31,4 +37,9 @@ position = Vector2(0.665, -1)
 rotation = -1.5707964
 shape = SubResource("CapsuleShape2D_403ya")
 
+[node name="RayCast2D" type="RayCast2D" parent="." unique_id=280532629]
+position = Vector2(1, -1)
+target_position = Vector2(0, 2)
+
+[connection signal="timeout" from="SleepTimer" to="." method="_on_sleep_timer_timeout"]
 [connection signal="timeout" from="LifeTimer" to="." method="_on_life_timer_timeout"]

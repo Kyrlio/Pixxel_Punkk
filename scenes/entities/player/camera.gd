@@ -66,7 +66,7 @@ func _calculate_mouse_lookahead_offset() -> Vector2:
 	return offset_direction * mouse_lookahead_distance
 
 
-static func bump_zoom(target_zoom: Vector2 = Vector2(0.92, 0.92), in_duration: float = 0.8, out_duration: float = 0.14) -> void:
+static func bump_zoom(target_zoom: Vector2 = Vector2(1.1, 1.1), in_duration: float = 0.15, out_duration: float = 0.75) -> void:
 	if instance == null:
 		return
 	

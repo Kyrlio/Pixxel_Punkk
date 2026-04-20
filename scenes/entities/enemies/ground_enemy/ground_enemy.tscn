@@ -434,6 +434,9 @@ health_component = NodePath("HealthComponent")
 hurtbox_component = NodePath("HurtboxComponent")
 hitbox_component = NodePath("HitboxComponent")
 health = 5
+knockback_force = 50.0
+knockback_upward_force = -25.0
+knockback_duration = 0.05
 
 [node name="HealthComponent" type="Node" parent="." unique_id=1570821650]
 unique_name_in_owner = true

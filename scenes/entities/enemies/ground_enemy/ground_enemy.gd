@@ -11,12 +11,16 @@ extends Enemy
 
 
 var direction: float = 1.0
-var is_dead: bool = false
-var can_move: bool = true
 
 
-func _process(delta: float) -> void:
-	if is_dead or not can_move:
+func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
+	
+	if process_knockback(delta):
+		return
+		
+	if not can_move:
 		return
 	
 	_movement(delta)
@@ -43,8 +47,7 @@ func _on_damaged() -> void:
 
 
 func _on_died() -> void:
-	is_dead = true
-	velocity = Vector2.ZERO
+	super._on_died()
 	animation_player.play("death")
 
 

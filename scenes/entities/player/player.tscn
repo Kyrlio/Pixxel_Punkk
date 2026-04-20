@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://civupnxbto2se" path="res://assets/characters/player/wall_slidingl.png" id="9_7wli1"]
 [ext_resource type="Script" uid="uid://dky2eduxwjfdm" path="res://scenes/entities/player/camera.gd" id="10_ovg4i"]
 [ext_resource type="Script" uid="uid://tfp07ctg4sf3" path="res://components/hurtbox_component/hurtbox_component.gd" id="13_r4dfn"]
+[ext_resource type="Shader" uid="uid://dtfdwv8q5xwyj" path="res://resources/shaders/hit_flash.tres" id="16_pcd0u"]
 
 [sub_resource type="Animation" id="Animation_1murt"]
 length = 0.001
@@ -126,6 +127,42 @@ tracks/8/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("Visuals/Sprite2D:material:shader_parameter/Enable")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:material:shader_parameter/Enable")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:scale")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_knby6"]
@@ -317,7 +354,7 @@ tracks/6/path = NodePath("DoubleJumpLight:enabled")
 tracks/6/interp = 1
 tracks/6/loop_wrap = true
 tracks/6/keys = {
-"times": PackedFloat32Array(0, 0.05, 0.3),
+"times": PackedFloat32Array(0, 0.05, 0.25),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
 "values": [false, true, false]
@@ -423,6 +460,59 @@ tracks/7/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_fg2wu"]
+resource_name = "hit"
+length = 0.1
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals/Sprite2D:material:shader_parameter/Enable")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:material:shader_parameter/Enable")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/Sprite2D:scale")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0.75, 1.2), Vector2(1, 1)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:scale")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0.8, 1.2), Vector2(1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_ovg4i"]
@@ -820,6 +910,7 @@ _data = {
 &"death": SubResource("Animation_18p7g"),
 &"double_jump": SubResource("Animation_xy2vv"),
 &"falling": SubResource("Animation_5sj0x"),
+&"hit": SubResource("Animation_fg2wu"),
 &"idle": SubResource("Animation_ovg4i"),
 &"jump": SubResource("Animation_7wli1"),
 &"ledge_grab": SubResource("Animation_w3p2j"),
@@ -921,6 +1012,16 @@ radius = 5.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_nh4ur"]
 radius = 6.0
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w3p2j"]
+shader = ExtResource("16_pcd0u")
+shader_parameter/Enable = false
+shader_parameter/ColorParameter = Color(18.892157, 18.892157, 18.892157, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7dqom"]
+shader = ExtResource("16_pcd0u")
+shader_parameter/Enable = false
+shader_parameter/ColorParameter = Color(18.892157, 18.892157, 18.892157, 1)
+
 [node name="Player" type="CharacterBody2D" unique_id=1054921170 groups=["player"]]
 z_index = 1
 collision_layer = 0
@@ -984,7 +1085,6 @@ texture = SubResource("GradientTexture2D_ovg4i")
 position = Vector2(0, -7)
 enabled = false
 color = Color(1, 0.68828744, 0.42745557, 1)
-energy = 2.0
 texture = SubResource("GradientTexture2D_pcd0u")
 offset = Vector2(0, 13)
 
@@ -1011,6 +1111,7 @@ unique_name_in_owner = true
 
 [node name="Sprite2D" type="Sprite2D" parent="Visuals" unique_id=754681786]
 unique_name_in_owner = true
+material = SubResource("ShaderMaterial_w3p2j")
 texture = ExtResource("1_nh4ur")
 offset = Vector2(0, -24)
 hframes = 8
@@ -1023,6 +1124,7 @@ position = Vector2(6, -4)
 
 [node name="Sprite2D" type="Sprite2D" parent="Visuals/WeaponRoot/WeaponAnimationRoot" unique_id=1960554046]
 texture_filter = 1
+material = SubResource("ShaderMaterial_7dqom")
 texture = ExtResource("7_1murt")
 centered = false
 offset = Vector2(-6, -10)

@@ -10,6 +10,7 @@ enum STATE {
 	ROLL,
 	HARD_LANDING,
 	DEAD,
+	KNOCKBACK,
 }
 
 const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
@@ -52,6 +53,10 @@ const WALL_JUMP_VELOCITY := -250.0
 const ROLL_LENGTH := 80.0
 const ROLL_VELOCITY := 400.0
 
+const KNOCKBACK_FORCE := 115.0
+const KNOCKBACK_UPWARD_FORCE := -150.0
+const KNOCKBACK_DURATION := 0.25
+
 
 @onready var visuals: Node2D = %Visuals
 @onready var sprite: Sprite2D = %Sprite2D
@@ -83,6 +88,8 @@ var can_fire: bool = true
 var can_move: bool = true
 var wait_for_double_jump_animation_to_finish: bool = false
 var is_wall_sliding: bool = false
+var knockback_time_left: float = 0.0
+var knockback_velocity: Vector2 = Vector2.ZERO
 
 var firing_tween: Tween
 var landing_tween: Tween
@@ -92,6 +99,7 @@ func _ready() -> void:
 	animation_player.animation_finished.connect(_on_animation_finished)
 	health_component.died.connect(_on_died)
 	health_component.damaged.connect(_on_damaged)
+	hurtbox_component.hit_by_hitbox.connect(_on_hit_by_hitbox)
 
 
 func _process(delta: float) -> void:
@@ -182,6 +190,12 @@ func switch_state(to_state: STATE) -> void:
 			velocity = Vector2.ZERO
 			GameEvents.emit_engine_freeze()
 			animation_player.play("death")
+			
+		STATE.KNOCKBACK:
+			can_fire = false
+			is_wall_sliding = false
+			velocity = knockback_velocity
+			animation_player.play("hit")
 
 
 func _process_state(delta: float) -> void:
@@ -250,6 +264,16 @@ func _process_state(delta: float) -> void:
 				switch_state(STATE.FALL)
 			elif Input.is_action_just_pressed("jump"):
 				switch_state(STATE.WALL_JUMP)
+				
+		STATE.KNOCKBACK:
+			velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
+			
+			knockback_time_left -= delta
+			if knockback_time_left <= 0.0:
+				if is_on_floor():
+					switch_state(STATE.FLOOR)
+				else:
+					switch_state(STATE.FALL)
 
 
 ## Vérifie si le joueur peut glisser le long d'un mur
@@ -497,10 +521,24 @@ func _on_hard_landing_timer_timeout() -> void:
 	switch_state(STATE.FLOOR)
 
 
+func _on_hit_by_hitbox(source_hitbox: HitboxComponent) -> void:
+	if active_state == STATE.DEAD:
+		return
+		
+	var knockback_dir := signf(global_position.x - source_hitbox.global_position.x)
+	if knockback_dir == 0.0:
+		knockback_dir = facing_direction
+		
+	knockback_velocity = Vector2(knockback_dir * KNOCKBACK_FORCE, KNOCKBACK_UPWARD_FORCE)
+	knockback_time_left = KNOCKBACK_DURATION
+	switch_state(STATE.KNOCKBACK)
+
+
 func _on_died() -> void:
 	switch_state(STATE.DEAD)
 
 
 func _on_damaged() -> void:
 	GameEvents.emit_engine_freeze()
-	GameCamera.shake(0.9)
+	GameCamera.shake(1)
+	GameCamera.bump_zoom()

@@ -1,8 +1,8 @@
 class_name Game
 extends Node2D
 
-@export var freeze_slow := 0.06
-@export var freeze_time := 0.15
+@export var freeze_slow: float = 0.06
+@export var freeze_time: float = 0.2
 
 @onready var level_container: Node2D = $LevelContainer
 

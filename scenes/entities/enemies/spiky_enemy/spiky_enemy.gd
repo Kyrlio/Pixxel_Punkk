@@ -13,8 +13,6 @@ const TURN_COOLDOWN: float = 0.08
 
 
 var direction: float = 1.0
-var is_dead: bool = false
-var can_move: bool = true
 var turn_cooldown_left: float = 0.0
 
 
@@ -65,8 +63,7 @@ func _on_damaged() -> void:
 
 
 func _on_died() -> void:
-	is_dead = true
-	velocity = Vector2.ZERO
+	super._on_died()
 	animation_player.play("death")
 
 
