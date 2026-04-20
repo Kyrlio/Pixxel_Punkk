@@ -11,11 +11,13 @@ enum STATE {
 	HARD_LANDING,
 	DEAD,
 	KNOCKBACK,
+	SLIDING
 }
 
 const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
 const BULLET_SCENE = preload("uid://c2h20l1u8lgb6")
 const CARTRIDGE_SCENE = preload("uid://dxwvjms21i32")
+const JUMP_PARTICLES_SCENE = preload("uid://c484p6dfsmn1v")
 
 const RUN_VELOCITY := 100.0
 const GROUND_ACCELERATION := 1000.0
@@ -114,166 +116,25 @@ func switch_state(to_state: STATE) -> void:
 	active_state = to_state
 	
 	match active_state:
-		STATE.FALL:
-			weapon_root.visible = true
-			can_fire = true
-			is_wall_sliding = false
-			if animation_player.current_animation != "falling":
-				animation_player.play("falling")
-			if previous_state == STATE.FLOOR:
-				coyote_timer.start()
-		
-		STATE.FLOOR:
-			weapon_root.visible = true
-			can_double_jump = true
-			can_roll = true
-			can_fire = true
-			is_wall_sliding = false
-			velocity.y = 0
-			coyote_timer.stop()
-			
-			if previous_state == STATE.FALL or previous_state == STATE.DOUBLE_JUMP:
-				if hard_landing:
-					switch_state(STATE.HARD_LANDING)
-				else:
-					play_landing_squish()
-		
-		STATE.JUMP:
-			weapon_root.visible = true
-			can_fire = true
-			is_wall_sliding = false
-			animation_player.play("jump")
-			begin_air_jump(JUMP_VELOCITY)
-		
-		STATE.DOUBLE_JUMP:
-			#weapon_root.visible = false
-			#can_fire = false
-			is_wall_sliding = false
-			animation_player.play("double_jump")
-			wait_for_double_jump_animation_to_finish = true
-			begin_air_jump(DOUBLE_JUMP_VELOCITY, true)
-		
-		STATE.ROLL:
-			is_wall_sliding = false
-			if roll_cooldown.time_left > 0:
-				active_state = previous_state
-				return
-			#animation_player.play("roll")
-			velocity.y = 0
-		
-		STATE.HARD_LANDING:
-			is_wall_sliding = false
-			can_move = false
-			hard_landing = false
-			velocity = Vector2.ZERO
-			play_hard_landing_squish()
-			animation_player.play("RESET")
-			hard_landing_timer.start()
-		
-		STATE.WALL_SLIDE:
-			is_wall_sliding = true
-			can_double_jump = true
-			animation_player.play("wall_slide")
-			velocity.y = 0
-			# Orienter le sprite vers le mur
-			var wall_dir = get_wall_direction()
-			visuals.scale = Vector2.ONE if wall_dir > 0 else Vector2(-1, 1)
-		
-		STATE.WALL_JUMP:
-			animation_player.play("jump")
-			velocity.y = WALL_JUMP_VELOCITY
-			saved_position = position
-		
-		STATE.DEAD:
-			GameCamera.shake(1)
-			can_move = false
-			velocity = Vector2.ZERO
-			GameEvents.emit_engine_freeze()
-			animation_player.play("death")
-			
-		STATE.KNOCKBACK:
-			can_fire = false
-			is_wall_sliding = false
-			velocity = knockback_velocity
-			animation_player.play("hit")
+		STATE.FALL: 			_enter_state_fall(previous_state)
+		STATE.FLOOR:			_enter_state_floor(previous_state)
+		STATE.JUMP: 			_enter_state_jump(previous_state)
+		STATE.DOUBLE_JUMP: 		_enter_state_double_jump(previous_state)
+		STATE.ROLL:				_enter_state_roll(previous_state)
+		STATE.HARD_LANDING:		_enter_state_hard_landing(previous_state)
+		STATE.WALL_SLIDE:		_enter_state_wall_slide(previous_state)
+		STATE.WALL_JUMP:		_enter_state_wall_jump(previous_state)
+		STATE.DEAD:				_enter_state_dead(previous_state)
+		STATE.KNOCKBACK:		_enter_state_knockback(previous_state)
 
 
 func _process_state(delta: float) -> void:
 	match active_state:
-		STATE.FALL:
-			velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
-			handle_movement(delta)
-			
-			if velocity.y >= FALL_VELOCITY:
-				hard_landing = true
-			
-			if is_on_floor():
-				switch_state(STATE.FLOOR)
-			elif Input.is_action_just_pressed("jump"):
-				if coyote_timer.time_left > 0:
-					switch_state(STATE.JUMP)
-				elif can_double_jump:
-					switch_state(STATE.DOUBLE_JUMP)
-			elif (is_input_toward_facing() or is_input_against_facing()) and can_wall_slide():
-				switch_state(STATE.WALL_SLIDE)
-		
-		STATE.FLOOR:
-			if Input.get_axis("move_left", "move_right"):
-				animation_player.play("run")
-			else:
-				animation_player.play("idle")
-			handle_movement(delta)
-			
-			if not is_on_floor():
-				switch_state(STATE.FALL)
-			elif Input.is_action_just_pressed("jump"):
-				switch_state(STATE.JUMP)
-		
-		STATE.JUMP, STATE.DOUBLE_JUMP, STATE.WALL_JUMP:
-			if active_state == STATE.DOUBLE_JUMP:
-				apply_double_jump_gravity(delta)
-			else:
-				apply_jump_gravity(delta)
-			
-			#velocity.y = move_toward(velocity.y, 0, JUMP_HOLD_GRAVITY * delta)
-			
-			if active_state == STATE.WALL_JUMP:
-				var distance := absf(position.x - saved_position.x)
-				if distance >= WALL_JUMP_LENGTH:
-					active_state = STATE.JUMP
-				else:
-					handle_movement(delta, get_wall_direction())
-			else:
-				handle_movement(delta)
-			
-			if is_on_floor():
-				switch_state(STATE.FLOOR)
-			elif velocity.y >= 0 and active_state == STATE.JUMP:
-				switch_state(STATE.FALL)
-			elif active_state == STATE.JUMP and Input.is_action_just_pressed("jump"):
-				switch_state(STATE.DOUBLE_JUMP)
-		
-		STATE.WALL_SLIDE:
-			velocity.y = minf(velocity.y + WALL_SLIDE_GRAVITY * delta, WALL_SLIDE_VELOCITY)
-			#velocity.y = move_toward(velocity.y, WALL_SLIDE_VELOCITY, WALL_SLIDE_GRAVITY * delta)
-			handle_movement(delta)
-			
-			if is_on_floor():
-				switch_state(STATE.FLOOR)
-			elif not can_wall_slide():
-				switch_state(STATE.FALL)
-			elif Input.is_action_just_pressed("jump"):
-				switch_state(STATE.WALL_JUMP)
-				
-		STATE.KNOCKBACK:
-			velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
-			
-			knockback_time_left -= delta
-			if knockback_time_left <= 0.0:
-				if is_on_floor():
-					switch_state(STATE.FLOOR)
-				else:
-					switch_state(STATE.FALL)
+		STATE.FALL:										_update_state_fall(delta)
+		STATE.FLOOR:									_update_state_floor(delta)
+		STATE.JUMP, STATE.DOUBLE_JUMP, STATE.WALL_JUMP: _update_state_jump(delta)
+		STATE.WALL_SLIDE: 								_update_state_wall_slide(delta)
+		STATE.KNOCKBACK: 								_update_state_knockback(delta)
 
 
 ## Vérifie si le joueur peut glisser le long d'un mur
@@ -431,6 +292,16 @@ func spawn_cartridge() -> void:
 	get_parent().add_child(cartridge)
 
 
+func spawn_jump_particles() -> void:
+	var jump_particles: GPUParticles2D = JUMP_PARTICLES_SCENE.instantiate()
+	jump_particles.global_position = global_position
+	#jump_particles.z_index = 1000
+	jump_particles.emitting = true
+	get_parent().add_child(jump_particles)
+	await jump_particles.finished
+	jump_particles.queue_free.call_deferred()
+
+
 ## Gère le déplacement horizontal du joueur avec accélération et friction.
 func handle_movement(delta: float, input_direction: float = 0, horizontal_velocity: float = RUN_VELOCITY) -> void:
 	if not can_move:
@@ -515,6 +386,186 @@ func get_wall_direction() -> int:
 	# Dernier fallback
 	return 1 if velocity.x >= 0 else -1
 
+
+# --------------------------------- ENTER STATES LOGIC --------------------------------------------
+
+func _enter_state_fall(previous_state: STATE) -> void:
+	weapon_root.visible = true
+	can_fire = true
+	is_wall_sliding = false
+	if animation_player.current_animation != "falling":
+		animation_player.play("falling")
+	if previous_state == STATE.FLOOR:
+		coyote_timer.start()
+
+
+func _enter_state_floor(previous_state: STATE) -> void:
+	weapon_root.visible = true
+	can_double_jump = true
+	can_roll = true
+	can_fire = true
+	is_wall_sliding = false
+	velocity.y = 0
+	coyote_timer.stop()
+	
+	if previous_state == STATE.FALL or previous_state == STATE.DOUBLE_JUMP:
+		if hard_landing:
+			switch_state(STATE.HARD_LANDING)
+		else:
+			play_landing_squish()
+
+
+func _enter_state_jump(_previous_state: STATE) -> void:
+	weapon_root.visible = true
+	can_fire = true
+	is_wall_sliding = false
+	animation_player.play("jump")
+	begin_air_jump(JUMP_VELOCITY)
+	spawn_jump_particles()
+
+
+func _enter_state_double_jump(_previous_state: STATE) -> void:
+	is_wall_sliding = false
+	animation_player.play("double_jump")
+	wait_for_double_jump_animation_to_finish = true
+	begin_air_jump(DOUBLE_JUMP_VELOCITY, true) 
+
+
+func _enter_state_wall_slide(_previous_state: STATE) -> void:
+	is_wall_sliding = true
+	can_double_jump = true
+	animation_player.play("wall_slide")
+	velocity.y = 0
+	# Orienter le sprite vers le mur
+	var wall_dir = get_wall_direction()
+	visuals.scale = Vector2.ONE if wall_dir > 0 else Vector2(-1, 1)
+
+
+func _enter_state_wall_jump(previous_state: STATE) -> void:
+	animation_player.play("jump")
+	velocity.y = WALL_JUMP_VELOCITY
+	saved_position = position
+
+
+func _enter_state_roll(previous_state: STATE) -> void:
+	is_wall_sliding = false
+	if roll_cooldown.time_left > 0:
+		active_state = previous_state
+		return
+	#animation_player.play("roll")
+	velocity.y = 0
+
+
+func _enter_state_hard_landing(_previous_state: STATE) -> void:
+	is_wall_sliding = false
+	can_move = false
+	hard_landing = false
+	velocity = Vector2.ZERO
+	play_hard_landing_squish()
+	animation_player.play("RESET")
+	hard_landing_timer.start()
+
+
+func _enter_state_dead(_previous_state: STATE) -> void:
+	GameCamera.shake(1)
+	can_move = false
+	velocity = Vector2.ZERO
+	GameEvents.emit_engine_freeze()
+	animation_player.play("death")
+
+
+func _enter_state_knockback(_previous_state: STATE) -> void:
+	can_fire = false
+	is_wall_sliding = false
+	velocity = knockback_velocity
+	animation_player.play("hit")
+
+
+
+# --------------------------------------- UPDATE STATE LOGIC --------------------------------------
+
+func _update_state_fall(delta: float) -> void:
+	velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
+	handle_movement(delta)
+	
+	if velocity.y >= FALL_VELOCITY:
+		hard_landing = true
+	
+	if is_on_floor():
+		switch_state(STATE.FLOOR)
+	elif Input.is_action_just_pressed("jump"):
+		if coyote_timer.time_left > 0:
+			switch_state(STATE.JUMP)
+		elif can_double_jump:
+			switch_state(STATE.DOUBLE_JUMP)
+	elif (is_input_toward_facing() or is_input_against_facing()) and can_wall_slide():
+		switch_state(STATE.WALL_SLIDE)
+
+
+func _update_state_floor(delta: float) -> void:
+	if Input.get_axis("move_left", "move_right"):
+		animation_player.play("run")
+	else:
+		animation_player.play("idle")
+	handle_movement(delta)
+	
+	if not is_on_floor():
+		switch_state(STATE.FALL)
+	elif Input.is_action_just_pressed("jump"):
+		switch_state(STATE.JUMP)
+
+
+func _update_state_jump(delta: float) -> void:
+	if active_state == STATE.DOUBLE_JUMP:
+		apply_double_jump_gravity(delta)
+	else:
+		apply_jump_gravity(delta)
+	
+	#velocity.y = move_toward(velocity.y, 0, JUMP_HOLD_GRAVITY * delta)
+	
+	if active_state == STATE.WALL_JUMP:
+		var distance := absf(position.x - saved_position.x)
+		if distance >= WALL_JUMP_LENGTH:
+			active_state = STATE.JUMP
+		else:
+			handle_movement(delta, get_wall_direction())
+	else:
+		handle_movement(delta)
+	
+	if is_on_floor():
+		switch_state(STATE.FLOOR)
+	elif velocity.y >= 0 and active_state == STATE.JUMP:
+		switch_state(STATE.FALL)
+	elif active_state == STATE.JUMP and Input.is_action_just_pressed("jump"):
+		switch_state(STATE.DOUBLE_JUMP)
+
+
+func _update_state_wall_slide(delta: float) -> void:
+	velocity.y = minf(velocity.y + WALL_SLIDE_GRAVITY * delta, WALL_SLIDE_VELOCITY)
+	#velocity.y = move_toward(velocity.y, WALL_SLIDE_VELOCITY, WALL_SLIDE_GRAVITY * delta)
+	handle_movement(delta)
+	
+	if is_on_floor():
+		switch_state(STATE.FLOOR)
+	elif not can_wall_slide():
+		switch_state(STATE.FALL)
+	elif Input.is_action_just_pressed("jump"):
+		switch_state(STATE.WALL_JUMP)
+
+
+func _update_state_knockback(delta: float) -> void:
+	velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
+			
+	knockback_time_left -= delta
+	if knockback_time_left <= 0.0:
+		if is_on_floor():
+			switch_state(STATE.FLOOR)
+		else:
+			switch_state(STATE.FALL)
+
+
+
+# ---------------------------------------- _ON METHODS -------------------------------------------
 
 func _on_hard_landing_timer_timeout() -> void:
 	can_move = true

@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://c484p6dfsmn1v"]
+
+[ext_resource type="Texture2D" uid="uid://b4djshr3us4nt" path="res://assets/fx/particles.png" id="1_mtjj5"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_2mgnp"]
+particles_animation = true
+particles_anim_h_frames = 4
+particles_anim_v_frames = 1
+particles_anim_loop = true
+
+[sub_resource type="Curve" id="Curve_kr2oh"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -3.116601, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_qsrbf"]
+curve = SubResource("Curve_kr2oh")
+
+[sub_resource type="Curve" id="Curve_k067y"]
+_limits = [0.0, 100.0, 0.0, 1.0]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 56.22617), 198.35341, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_rdk5q"]
+curve = SubResource("Curve_k067y")
+
+[sub_resource type="Curve" id="Curve_4ctch"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.111243, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_et1pm"]
+curve = SubResource("Curve_4ctch")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_b0fdu"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(8, 1, 1)
+angle_min = -720.0
+angle_max = 720.0
+direction = Vector3(0, -1, 0)
+flatness = 1.0
+initial_velocity_min = 75.0
+initial_velocity_max = 75.0
+gravity = Vector3(0, -1, 0)
+damping_max = 100.00001
+damping_curve = SubResource("CurveTexture_rdk5q")
+scale_min = 0.0
+scale_max = 0.29999998
+scale_curve = SubResource("CurveTexture_et1pm")
+alpha_curve = SubResource("CurveTexture_qsrbf")
+anim_speed_min = 1.0
+anim_speed_max = 2.0
+
+[node name="JumpParticles" type="GPUParticles2D" unique_id=604011704]
+material = SubResource("CanvasItemMaterial_2mgnp")
+emitting = false
+texture = ExtResource("1_mtjj5")
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.98
+fixed_fps = 0
+interpolate = false
+process_material = SubResource("ParticleProcessMaterial_b0fdu")
