@@ -146,6 +146,7 @@ _data = {
 
 [node name="MuzzleFlash" type="GPUParticles2D" unique_id=1032695003]
 modulate = Color(1.1638972, 1.1638972, 1.1638972, 1)
+z_index = 2
 material = SubResource("CanvasItemMaterial_swl84")
 emitting = false
 amount = 5

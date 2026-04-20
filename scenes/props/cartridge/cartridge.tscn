@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://dxwvjms21i32"]
+
+[ext_resource type="Script" uid="uid://d02cw27raujt1" path="res://scenes/props/cartridge/cartridge.gd" id="1_403ya"]
+[ext_resource type="Texture2D" uid="uid://b8jugimw7e5nc" path="res://assets/fx/cartridge.png" id="2_403ya"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_403ya"]
+radius = 1.0
+height = 4.0
+
+[node name="Cartridge" type="RigidBody2D" unique_id=553423610]
+z_index = 1
+collision_layer = 8
+script = ExtResource("1_403ya")
+speed_min = 200.0
+speed_max = 250.0
+
+[node name="LifeTimer" type="Timer" parent="." unique_id=927942070]
+process_callback = 0
+wait_time = 10.0
+one_shot = true
+autostart = true
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1686288670]
+scale = Vector2(0.66, 0.66)
+texture = ExtResource("2_403ya")
+offset = Vector2(0, -8)
+region_rect = Rect2(48, 136, 8, 8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1464478842]
+position = Vector2(0.665, -1)
+rotation = -1.5707964
+shape = SubResource("CapsuleShape2D_403ya")
+
+[connection signal="timeout" from="LifeTimer" to="." method="_on_life_timer_timeout"]

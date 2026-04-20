@@ -14,6 +14,7 @@ enum STATE {
 
 const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
 const BULLET_SCENE = preload("uid://c2h20l1u8lgb6")
+const CARTRIDGE_SCENE = preload("uid://dxwvjms21i32")
 
 const RUN_VELOCITY := 100.0
 const GROUND_ACCELERATION := 1000.0
@@ -387,12 +388,23 @@ func play_fire_effects() -> void:
 	firing_tween.tween_property(sprite, "scale", Vector2.ONE, FIRING_SQUISH_RECOVER_DURATION)
 	firing_tween.tween_property(weapon_animation_root, "scale", Vector2.ONE, FIRING_SQUISH_RECOVER_DURATION)
 	
+	spawn_muzzle_flash()
+	spawn_cartridge()
+	GameCamera.shake(0.5)
+
+
+func spawn_muzzle_flash() -> void:
 	var muzzle_flash: Node2D = MUZZLE_FLASH_SCENE.instantiate()
 	muzzle_flash.global_position = barrel_position.global_position
 	muzzle_flash.rotation = barrel_position.global_rotation
 	get_parent().add_child(muzzle_flash)
-	
-	GameCamera.shake(0.5)
+
+
+func spawn_cartridge() -> void:
+	var cartridge: Cartridge = CARTRIDGE_SCENE.instantiate()
+	cartridge.global_position = barrel_position.global_position
+	cartridge.start(get_aim_vector())
+	get_parent().add_child(cartridge)
 
 
 ## Gère le déplacement horizontal du joueur avec accélération et friction.
