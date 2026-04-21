@@ -1242,3 +1242,12 @@ position = Vector2(136, 16)
 [node name="DroneEnemy" parent="Enemies" unique_id=402783546 instance=ExtResource("9_k6jje")]
 unique_name_in_owner = true
 position = Vector2(89, 324)
+
+[node name="DroneEnemy2" parent="Enemies" unique_id=677757825 instance=ExtResource("9_k6jje")]
+position = Vector2(372, 40)
+
+[node name="DroneEnemy3" parent="Enemies" unique_id=1302649830 instance=ExtResource("9_k6jje")]
+position = Vector2(539, 269)
+
+[node name="DroneEnemy4" parent="Enemies" unique_id=1371409718 instance=ExtResource("9_k6jje")]
+position = Vector2(-80, 29)

@@ -6,17 +6,23 @@ enum STATE {
 	CHASE,
 	INVESTIGATE,
 	ATTACK,
+	KNOCKBACK,
 	DEATH
 }
 
 const VISION_THRESHOLD: float = 0.5
 const PATROL_RADIUS: float = 100.0
+const ATTACK_RANGE: float = 20.0
+const KNOCKBACK_FORCE: float = 200.0
+const KNOCKBACK_DURATION: float = 0.15
 
 @onready var visuals: Node2D = $Visuals
 @onready var sprite: Sprite2D = $Visuals/Sprite2D
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var hit_flash_animation: AnimationPlayer = $HitFlashAnimation
 @onready var see_raycast: RayCast2D = $SeeRayCast
+@onready var flashlight: PointLight2D = $Flashlight
+@onready var attack_cooldown_timer: Timer = $AttackCooldownTimer
 
 var active_state: STATE = STATE.PATROL
 var player: Player
@@ -34,6 +40,10 @@ var moving: bool = false
 var patrol_center: Vector2
 var patrol_timer: float = 0.0
 
+var look_direction: Vector2 = Vector2.RIGHT
+var base_look_angle: float = 0.0
+var look_time: float = 0.0
+
 func setup(_grid: AStarGrid2D):
 	grid = _grid
 	current_cell = pos_to_cell(global_position)
@@ -46,6 +56,15 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
+	
+	if process_knockback(delta):
+		return
+		
+	if not can_move:
+		return
+	
 	$Label.text = get_string_current_state()
 	update_visuals_facing()
 	process_state(delta)
@@ -71,6 +90,11 @@ func switch_state(to_state: STATE) -> void:
 		STATE.ATTACK:
 			print("attack")
 			animation_player.play("attack")
+			attack_cooldown_timer.start()
+		
+		STATE.KNOCKBACK:
+			print("knockback")
+			# L'animation hit_flash_animation.play("hit") est déjà jouée dans _on_damaged
 		
 		STATE.DEATH:
 			print("die")
@@ -89,6 +113,8 @@ func process_state(delta: float) -> void:
 				velocity = Vector2.ZERO
 				move_and_slide()
 				
+				searching(delta)
+				
 				patrol_timer -= delta
 				if patrol_timer <= 0.0:
 					generate_random_patrol_path()
@@ -101,6 +127,9 @@ func process_state(delta: float) -> void:
 				player_old_position = player.global_position
 				switch_state(STATE.INVESTIGATE)
 				return
+			
+			if can_attack_player() and attack_cooldown_timer.is_stopped():
+				switch_state(STATE.ATTACK)
 			
 			var target = Vector2i(pos_to_cell(player.position))
 			if target != target_cell:
@@ -115,6 +144,7 @@ func process_state(delta: float) -> void:
 			
 			process_movement(delta)
 			
+			
 		STATE.INVESTIGATE:
 			if check_player_visibility():
 				switch_state(STATE.CHASE)
@@ -128,6 +158,16 @@ func process_state(delta: float) -> void:
 		STATE.ATTACK:
 			velocity = Vector2.ZERO
 			move_and_slide()
+			
+			if global_position.distance_to(player.global_position) > ATTACK_RANGE:
+				switch_state(STATE.CHASE)
+				
+		STATE.KNOCKBACK:
+			velocity = knockback_velocity
+			move_and_slide()
+			knockback_time_left -= delta
+			if knockback_time_left <= 0.0:
+				switch_state(STATE.INVESTIGATE)
 		
 		STATE.DEATH:
 			velocity = Vector2.ZERO
@@ -194,16 +234,29 @@ func is_player_in_detection_area() -> bool:
 	return player_in_detection_area
 
 
+func can_attack_player() -> bool:
+	if not player:
+		return false
+	
+	var distance_to_player = global_position.distance_to(player.global_position)
+	return distance_to_player <= ATTACK_RANGE
+
+
+func searching(delta: float) -> void:
+	look_time += delta
+	
+	var sweep_angle = sin(look_time * 3.0) * 1.5
+	look_direction = Vector2.RIGHT.rotated(base_look_angle + sweep_angle)
+
+
 func check_player_visibility() -> bool:
-	var player_direction: Vector2 = player.global_position - global_position
+	var player_direction: Vector2 = (player.global_position - global_position).normalized()
 	
-	return raycast_on_player()
-	
-	#var dot_product = direction.dot(player_direction)
-	#if dot_product > VISION_THRESHOLD:
-		#if raycast_on_player():
-			#return true
-	#return false
+	var dot_product = look_direction.dot(player_direction)
+	if dot_product > VISION_THRESHOLD:
+		if raycast_on_player():
+			return true
+	return false
 
 
 func raycast_on_player() -> bool:
@@ -214,7 +267,17 @@ func raycast_on_player() -> bool:
 
 
 func update_visuals_facing() -> void:
-	visuals.scale = Vector2.ONE if velocity.normalized().x >= 0 else Vector2(-1, 1)
+	if velocity.length() > 0:
+		look_direction = velocity.normalized()
+		base_look_angle = look_direction.angle()
+		look_time = 0.0
+	
+	if flashlight:
+		#flashlight.rotation = look_direction.angle()
+		flashlight.rotation = lerp(flashlight.rotation, look_direction.angle(), 0.1)
+	
+	visuals.scale = Vector2.ONE if look_direction.x >= 0 else Vector2(-1, 1)
+	
 
 
 func get_string_current_state() -> String:
@@ -230,11 +293,18 @@ func get_string_current_state() -> String:
 		
 		STATE.ATTACK:
 			return "ATTACK"
+			
+		STATE.KNOCKBACK:
+			return "KNOCKBACK"
 		
 		STATE.DEATH:
 			return "DEATH"
 		
 		_: return "NOTHING"
+
+
+func _can_move(value: bool) -> void:
+	can_move = value
 
 
 func _on_detection_area_body_entered(body: Node2D) -> void:
@@ -252,3 +322,36 @@ func _on_see_area_body_entered(body: Node2D) -> void:
 	if body is Player:
 		player = body
 		can_see_player = true
+
+
+func _on_damaged() -> void:
+	hit_flash_animation.play("hit")
+	
+	if not player:
+		player = get_tree().get_first_node_in_group("player")
+	
+	if player:
+		player_old_position = player.global_position
+		
+		# Calculer la direction de projection (opposée à là où se trouve le joueur)
+		var knockback_dir = (global_position - player.global_position).normalized()
+		knockback_velocity = knockback_dir * KNOCKBACK_FORCE
+		knockback_time_left = KNOCKBACK_DURATION
+		
+		var target = pos_to_cell(player_old_position)
+		if target != current_cell and grid:
+			var new_path = grid.get_point_path(current_cell, target)
+			if new_path and new_path.size() > 0:
+				move_pts = new_path
+				move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
+				if $PathPreviz:
+					$PathPreviz.points = move_pts
+				target_cell = target
+				start_move()
+	
+	switch_state(STATE.KNOCKBACK)
+
+
+func _on_died() -> void:
+	super._on_died()
+	animation_player.play("death")

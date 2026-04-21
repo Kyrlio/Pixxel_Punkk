@@ -76,6 +76,8 @@ const KNOCKBACK_DURATION := 0.25
 @onready var wall_slide_raycast_2: RayCast2D = %WallSlideRaycast2
 @onready var health_component: HealthComponent = %HealthComponent
 @onready var hurtbox_component: HurtboxComponent = %HurtboxComponent
+@onready var jump_buffer_timer: Timer = %JumpBufferTimer
+@onready var dash_buffer_timer: Timer = %DashBufferTimer
 
 @export var bullet_damage: int = 1
 
@@ -111,6 +113,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	update_facing_from_mouse()
 	gather_attack_input()
+	update_input_buffers()
 	_process_state(delta)
 	move_and_slide()
 
@@ -140,6 +143,30 @@ func _process_state(delta: float) -> void:
 		STATE.WALL_SLIDE: 								_update_state_wall_slide(delta)
 		STATE.KNOCKBACK: 								_update_state_knockback(delta)
 		STATE.DASH:										_update_state_dash(delta)
+
+
+func update_input_buffers() -> void:
+	if Input.is_action_just_pressed("jump"):
+		jump_buffer_timer.start()
+	
+	if Input.is_action_just_pressed("dash"):
+		dash_buffer_timer.start()
+
+
+func has_jump_buffer() -> bool:
+	return jump_buffer_timer.time_left > 0.0
+
+
+func consume_jump_buffer() -> void:
+	jump_buffer_timer.stop()
+
+
+func has_dash_buffer() -> bool:
+	return dash_buffer_timer.time_left > 0.0
+
+
+func consume_dash_buffer() -> void:
+	dash_buffer_timer.stop()
 
 
 ## Vérifie si le joueur peut glisser le long d'un mur
@@ -526,14 +553,17 @@ func _update_state_fall(delta: float) -> void:
 	
 	if is_on_floor():
 		switch_state(STATE.FLOOR)
-	elif Input.is_action_just_pressed("jump"):
+	elif has_jump_buffer():
 		if coyote_timer.time_left > 0:
+			consume_jump_buffer()
 			switch_state(STATE.JUMP)
 		elif can_double_jump:
+			consume_jump_buffer()
 			switch_state(STATE.DOUBLE_JUMP)
 	elif (is_input_toward_facing() or is_input_against_facing()) and can_wall_slide():
 		switch_state(STATE.WALL_SLIDE)
-	elif Input.is_action_just_pressed("dash") and can_dash:
+	elif has_dash_buffer() and can_dash:
+		consume_dash_buffer()
 		switch_state(STATE.DASH)
 
 
@@ -546,9 +576,11 @@ func _update_state_floor(delta: float) -> void:
 	
 	if not is_on_floor():
 		switch_state(STATE.FALL)
-	elif Input.is_action_just_pressed("jump"):
+	elif has_jump_buffer():
+		consume_jump_buffer()
 		switch_state(STATE.JUMP)
-	elif Input.is_action_just_pressed("dash"):
+	elif has_dash_buffer():
+		consume_dash_buffer()
 		switch_state(STATE.DASH)
 
 
@@ -573,9 +605,11 @@ func _update_state_jump(delta: float) -> void:
 		switch_state(STATE.FLOOR)
 	elif velocity.y >= 0 and active_state == STATE.JUMP:
 		switch_state(STATE.FALL)
-	elif active_state == STATE.JUMP and Input.is_action_just_pressed("jump"):
+	elif active_state == STATE.JUMP and has_jump_buffer():
+		consume_jump_buffer()
 		switch_state(STATE.DOUBLE_JUMP)
-	elif Input.is_action_just_pressed("dash") and can_dash:
+	elif has_dash_buffer() and can_dash:
+		consume_dash_buffer()
 		switch_state(STATE.DASH)
 
 
@@ -588,10 +622,12 @@ func _update_state_wall_slide(delta: float) -> void:
 		switch_state(STATE.FLOOR)
 	elif not can_wall_slide():
 		switch_state(STATE.FALL)
-	elif Input.is_action_just_pressed("jump"):
+	elif has_jump_buffer():
+		consume_jump_buffer()
 		switch_state(STATE.WALL_JUMP)
-	elif Input.is_action_just_pressed("dash"):
+	elif has_dash_buffer():
 		if is_input_toward_facing():
+			consume_dash_buffer()
 			switch_state(STATE.DASH)
 
 
@@ -611,7 +647,8 @@ func _update_state_dash(_qdelta) -> void:
 	dash_cooldown.start()
 	if is_on_floor():
 		coyote_timer.start()
-	if Input.is_action_just_pressed("jump"):
+	if has_jump_buffer():
+		consume_jump_buffer()
 		dash_jump_buffer = true
 	
 	var distance := absf(position.x - saved_position.x)

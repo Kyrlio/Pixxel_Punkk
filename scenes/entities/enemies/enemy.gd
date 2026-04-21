@@ -8,9 +8,9 @@ const GRAVITY: float = 500.0
 @export var hitbox_component: HitboxComponent
 @export var speed: float = 20.0
 @export var health: int = 10
-@export var knockback_force: float = 120.0
-@export var knockback_upward_force: float = -45.0
-@export var knockback_duration: float = 0.12
+@export var knockback_force: float = 50.0
+@export var knockback_upward_force: float = -25.0
+@export var knockback_duration: float = 0.05
 
 var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_time_left: float = 0.0
