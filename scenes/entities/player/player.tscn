@@ -1039,6 +1039,19 @@ z_index = 1
 collision_layer = 2
 script = ExtResource("1_bjvvg")
 
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1654631562]
+
+[node name="Control" type="Control" parent="HUD" unique_id=697831987]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD/Control" unique_id=641256400]
+layout_mode = 1
+offset_right = 40.0
+offset_bottom = 40.0
+
 [node name="CoyoteTimer" type="Timer" parent="." unique_id=1061782584]
 unique_name_in_owner = true
 process_callback = 0

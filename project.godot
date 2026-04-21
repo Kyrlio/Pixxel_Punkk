@@ -22,6 +22,7 @@ config/icon="uid://bnw0ms1mkc1ke"
 [autoload]
 
 GameEvents="*uid://ek1sdrx2emj"
+Cursor="*uid://dwa4mxdld0con"
 
 [display]
 

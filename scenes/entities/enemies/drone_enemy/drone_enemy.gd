@@ -23,6 +23,7 @@ const KNOCKBACK_DURATION: float = 0.15
 @onready var see_raycast: RayCast2D = $SeeRayCast
 @onready var flashlight: PointLight2D = $Flashlight
 @onready var attack_cooldown_timer: Timer = $AttackCooldownTimer
+@onready var alert_sprite: Sprite2D = $AlertSprite
 
 var active_state: STATE = STATE.PATROL
 var player: Player
@@ -44,6 +45,8 @@ var look_direction: Vector2 = Vector2.RIGHT
 var base_look_angle: float = 0.0
 var look_time: float = 0.0
 
+var alert_tween: Tween
+
 func setup(_grid: AStarGrid2D):
 	grid = _grid
 	current_cell = pos_to_cell(global_position)
@@ -53,6 +56,7 @@ func setup(_grid: AStarGrid2D):
 func _ready() -> void:
 	super._ready()
 	patrol_center = global_position
+	alert_sprite.scale = Vector2.ZERO
 
 
 func _physics_process(delta: float) -> void:
@@ -65,7 +69,6 @@ func _physics_process(delta: float) -> void:
 	if not can_move:
 		return
 	
-	$Label.text = get_string_current_state()
 	update_visuals_facing()
 	process_state(delta)
 
@@ -76,28 +79,31 @@ func switch_state(to_state: STATE) -> void:
 	
 	match active_state:
 		STATE.PATROL:
-			print("PATTROL")
 			animation_player.play("default")
 		
 		STATE.CHASE:
-			print("CHASE")
 			animation_player.play("default")
 			
+			if alert_tween != null and alert_tween.is_valid():
+				alert_tween.kill()
+			
+			if alert_sprite:
+				alert_tween = create_tween()
+				alert_tween.tween_property(alert_sprite, "scale", Vector2.ONE, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TransitionType.TRANS_BACK)
+				alert_tween.tween_interval(0.2)
+				alert_tween.chain().tween_property(alert_sprite, "scale", Vector2.ZERO, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TransitionType.TRANS_BACK)
+			
 		STATE.INVESTIGATE:
-			print("INVESTIGATE")
 			animation_player.play("default")
 		
 		STATE.ATTACK:
-			print("attack")
 			animation_player.play("attack")
 			attack_cooldown_timer.start()
 		
 		STATE.KNOCKBACK:
-			print("knockback")
-			# L'animation hit_flash_animation.play("hit") est déjà jouée dans _on_damaged
+			hit_flash_animation.play("hit")
 		
 		STATE.DEATH:
-			print("die")
 			animation_player.play("death")
 
 
@@ -137,8 +143,6 @@ func process_state(delta: float) -> void:
 				if new_path:
 					move_pts = new_path
 					move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
-					if $PathPreviz:
-						$PathPreviz.points = move_pts
 					target_cell = target
 					start_move()
 			
@@ -159,9 +163,6 @@ func process_state(delta: float) -> void:
 			velocity = Vector2.ZERO
 			move_and_slide()
 			
-			if global_position.distance_to(player.global_position) > ATTACK_RANGE:
-				switch_state(STATE.CHASE)
-				
 		STATE.KNOCKBACK:
 			velocity = knockback_velocity
 			move_and_slide()
@@ -180,8 +181,6 @@ func process_movement(delta: float) -> bool:
 			velocity = Vector2.ZERO
 			global_position = move_pts[-1]
 			current_cell = pos_to_cell(global_position)
-			if $PathPreviz:
-				$PathPreviz.points = []
 			moving = false
 			return false
 		else:
@@ -212,8 +211,6 @@ func generate_random_patrol_path() -> void:
 		if new_path and new_path.size() > 0:
 			move_pts = new_path
 			move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
-			if $PathPreviz:
-				$PathPreviz.points = move_pts
 			target_cell = target
 			start_move()
 
@@ -277,30 +274,6 @@ func update_visuals_facing() -> void:
 		flashlight.rotation = lerp(flashlight.rotation, look_direction.angle(), 0.1)
 	
 	visuals.scale = Vector2.ONE if look_direction.x >= 0 else Vector2(-1, 1)
-	
-
-
-func get_string_current_state() -> String:
-	match active_state:
-		STATE.PATROL:
-			return "PATROL"
-		
-		STATE.CHASE:
-			return "CHASE"
-			
-		STATE.INVESTIGATE:
-			return "INVESTIGATE"
-		
-		STATE.ATTACK:
-			return "ATTACK"
-			
-		STATE.KNOCKBACK:
-			return "KNOCKBACK"
-		
-		STATE.DEATH:
-			return "DEATH"
-		
-		_: return "NOTHING"
 
 
 func _can_move(value: bool) -> void:
@@ -325,8 +298,6 @@ func _on_see_area_body_entered(body: Node2D) -> void:
 
 
 func _on_damaged() -> void:
-	hit_flash_animation.play("hit")
-	
 	if not player:
 		player = get_tree().get_first_node_in_group("player")
 	
@@ -344,8 +315,6 @@ func _on_damaged() -> void:
 			if new_path and new_path.size() > 0:
 				move_pts = new_path
 				move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
-				if $PathPreviz:
-					$PathPreviz.points = move_pts
 				target_cell = target
 				start_move()
 	

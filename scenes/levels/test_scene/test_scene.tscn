@@ -1205,8 +1205,13 @@ position = Vector2(265, 145)
 color = Color(1, 1, 0.47058824, 1)
 texture = ExtResource("4_88e55")
 
+[node name="PointLight2D3" type="PointLight2D" parent="." unique_id=2045466644]
+position = Vector2(215, 382)
+color = Color(0.8784314, 0.41568628, 0.44313726, 1)
+texture = ExtResource("4_88e55")
+
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=651703500]
-color = Color(0.85350335, 0.86725676, 0.9622815, 1)
+color = Color(0.6128516, 0.6363462, 0.8776413, 1)
 
 [node name="Label" type="Label" parent="." unique_id=1933022259]
 offset_left = 335.0
