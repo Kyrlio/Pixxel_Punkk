@@ -1036,7 +1036,7 @@ shader_parameter/ColorParameter = Color(18.892157, 18.892157, 18.892157, 1)
 
 [node name="Player" type="CharacterBody2D" unique_id=1054921170 groups=["player"]]
 z_index = 1
-collision_layer = 0
+collision_layer = 2
 script = ExtResource("1_bjvvg")
 
 [node name="CoyoteTimer" type="Timer" parent="." unique_id=1061782584]
