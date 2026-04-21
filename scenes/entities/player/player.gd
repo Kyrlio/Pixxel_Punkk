@@ -7,11 +7,11 @@ enum STATE {
 	DOUBLE_JUMP,
 	WALL_SLIDE,
 	WALL_JUMP,
-	ROLL,
+	DASH,
 	HARD_LANDING,
 	DEAD,
 	KNOCKBACK,
-	SLIDING
+	SLIDING,
 }
 
 const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
@@ -52,8 +52,8 @@ const WALL_SLIDE_VELOCITY := 200.0
 const WALL_JUMP_LENGTH := 8.0
 const WALL_JUMP_VELOCITY := -250.0
 
-const ROLL_LENGTH := 80.0
-const ROLL_VELOCITY := 400.0
+const DASH_LENGTH := 20.0
+const DASH_VELOCITY := 350.0
 
 const KNOCKBACK_FORCE := 115.0
 const KNOCKBACK_UPWARD_FORCE := -150.0
@@ -63,7 +63,7 @@ const KNOCKBACK_DURATION := 0.25
 @onready var visuals: Node2D = %Visuals
 @onready var sprite: Sprite2D = %Sprite2D
 @onready var coyote_timer: Timer = %CoyoteTimer
-@onready var roll_cooldown: Timer = %RollCooldown
+@onready var dash_cooldown: Timer = %DashCooldown
 @onready var player_collider: CollisionShape2D = %PlayerCollider
 @onready var animation_player: AnimationPlayer = %AnimationPlayer
 @onready var weapon_animation_player: AnimationPlayer = $WeaponAnimationPlayer
@@ -88,13 +88,17 @@ var can_double_jump: bool = false
 var can_roll: bool = false
 var can_fire: bool = true
 var can_move: bool = true
+var can_dash: bool = false
+var dash_jump_buffer: bool = false
 var wait_for_double_jump_animation_to_finish: bool = false
 var is_wall_sliding: bool = false
+var is_sprinting: bool = false
 var knockback_time_left: float = 0.0
 var knockback_velocity: Vector2 = Vector2.ZERO
 
 var firing_tween: Tween
 var landing_tween: Tween
+var dashing_tween: Tween
 
 func _ready() -> void:
 	switch_state(active_state)
@@ -120,7 +124,7 @@ func switch_state(to_state: STATE) -> void:
 		STATE.FLOOR:			_enter_state_floor(previous_state)
 		STATE.JUMP: 			_enter_state_jump(previous_state)
 		STATE.DOUBLE_JUMP: 		_enter_state_double_jump(previous_state)
-		STATE.ROLL:				_enter_state_roll(previous_state)
+		STATE.DASH:				_enter_state_dash(previous_state)
 		STATE.HARD_LANDING:		_enter_state_hard_landing(previous_state)
 		STATE.WALL_SLIDE:		_enter_state_wall_slide(previous_state)
 		STATE.WALL_JUMP:		_enter_state_wall_jump(previous_state)
@@ -135,6 +139,7 @@ func _process_state(delta: float) -> void:
 		STATE.JUMP, STATE.DOUBLE_JUMP, STATE.WALL_JUMP: _update_state_jump(delta)
 		STATE.WALL_SLIDE: 								_update_state_wall_slide(delta)
 		STATE.KNOCKBACK: 								_update_state_knockback(delta)
+		STATE.DASH:										_update_state_dash(delta)
 
 
 ## Vérifie si le joueur peut glisser le long d'un mur
@@ -161,6 +166,24 @@ func ledge_climb_offset() -> Vector2:
 func gather_attack_input() -> void:
 	if Input.is_action_pressed("fire"):
 		try_fire()
+
+
+func play_dashing_squish() -> void:
+	if dashing_tween != null and dashing_tween.is_running():
+		dashing_tween.kill()
+	
+	dashing_tween = create_tween()
+	dashing_tween.set_parallel(true)
+	dashing_tween.set_trans(Tween.TRANS_QUAD)
+	dashing_tween.set_ease(Tween.EASE_OUT)
+	dashing_tween.tween_property(sprite, "scale", Vector2(0.5, 1), 0.1)
+	dashing_tween.tween_property(weapon_animation_root, "scale", Vector2(0.75, 1), 0.1)
+
+	dashing_tween.set_parallel(false)
+	dashing_tween.set_trans(Tween.TRANS_QUAD)
+	dashing_tween.set_ease(Tween.EASE_OUT)
+	dashing_tween.tween_property(sprite, "scale", Vector2.ONE, 0.1)
+	dashing_tween.tween_property(weapon_animation_root, "scale", Vector2.ONE, 0.1)
 
 
 func play_landing_squish() -> void:
@@ -318,7 +341,11 @@ func handle_movement(delta: float, input_direction: float = 0, horizontal_veloci
 
 	var target_velocity_x := input_direction * horizontal_velocity
 	if input_direction != 0:
-		velocity.x = move_toward(velocity.x, target_velocity_x, acceleration * delta)
+		if absf(velocity.x) > horizontal_velocity and signf(velocity.x) == input_direction:
+			velocity.x = move_toward(velocity.x, target_velocity_x, friction * delta)
+		else:
+			velocity.x = move_toward(velocity.x, target_velocity_x, acceleration * delta)
+		
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 
@@ -343,14 +370,6 @@ func is_input_toward_facing() -> bool:
 ## Retourne true si la direction d'entrée (gauche/droite) ne correspond pas à la direction de face actuelle
 func is_input_against_facing() -> bool:
 	return signf(Input.get_axis("move_left", "move_right")) == -facing_direction
-
-
-func get_aim_vector() -> Vector2:
-	return (get_global_mouse_position() - global_position).normalized()
-
-
-func get_bullet_damage() -> int:
-	return bullet_damage
 
 
 func _on_animation_finished(_anim_name: String) -> void:
@@ -404,6 +423,7 @@ func _enter_state_floor(previous_state: STATE) -> void:
 	can_double_jump = true
 	can_roll = true
 	can_fire = true
+	can_dash = true
 	is_wall_sliding = false
 	velocity.y = 0
 	coyote_timer.stop()
@@ -434,6 +454,7 @@ func _enter_state_double_jump(_previous_state: STATE) -> void:
 func _enter_state_wall_slide(_previous_state: STATE) -> void:
 	is_wall_sliding = true
 	can_double_jump = true
+	can_dash = true
 	animation_player.play("wall_slide")
 	velocity.y = 0
 	# Orienter le sprite vers le mur
@@ -447,13 +468,25 @@ func _enter_state_wall_jump(previous_state: STATE) -> void:
 	saved_position = position
 
 
-func _enter_state_roll(previous_state: STATE) -> void:
+func _enter_state_dash(previous_state: STATE) -> void:
 	is_wall_sliding = false
-	if roll_cooldown.time_left > 0:
+	if dash_cooldown.time_left > 0:
 		active_state = previous_state
 		return
-	#animation_player.play("roll")
+	animation_player.play("dash")
 	velocity.y = 0
+	
+	play_dashing_squish()
+	
+	var input_dir: float = get_input_direction()
+	if input_dir == 0.0:
+		input_dir = 1.0 if get_aim_vector().x >= 0 else -1.0
+	
+	velocity.x = DASH_VELOCITY * input_dir
+	
+	saved_position = position
+	can_dash = previous_state == STATE.FLOOR or previous_state == STATE.WALL_SLIDE
+	dash_jump_buffer = false
 
 
 func _enter_state_hard_landing(_previous_state: STATE) -> void:
@@ -500,6 +533,8 @@ func _update_state_fall(delta: float) -> void:
 			switch_state(STATE.DOUBLE_JUMP)
 	elif (is_input_toward_facing() or is_input_against_facing()) and can_wall_slide():
 		switch_state(STATE.WALL_SLIDE)
+	elif Input.is_action_just_pressed("dash") and can_dash:
+		switch_state(STATE.DASH)
 
 
 func _update_state_floor(delta: float) -> void:
@@ -513,6 +548,8 @@ func _update_state_floor(delta: float) -> void:
 		switch_state(STATE.FALL)
 	elif Input.is_action_just_pressed("jump"):
 		switch_state(STATE.JUMP)
+	elif Input.is_action_just_pressed("dash"):
+		switch_state(STATE.DASH)
 
 
 func _update_state_jump(delta: float) -> void:
@@ -538,6 +575,8 @@ func _update_state_jump(delta: float) -> void:
 		switch_state(STATE.FALL)
 	elif active_state == STATE.JUMP and Input.is_action_just_pressed("jump"):
 		switch_state(STATE.DOUBLE_JUMP)
+	elif Input.is_action_just_pressed("dash") and can_dash:
+		switch_state(STATE.DASH)
 
 
 func _update_state_wall_slide(delta: float) -> void:
@@ -551,6 +590,9 @@ func _update_state_wall_slide(delta: float) -> void:
 		switch_state(STATE.FALL)
 	elif Input.is_action_just_pressed("jump"):
 		switch_state(STATE.WALL_JUMP)
+	elif Input.is_action_just_pressed("dash"):
+		if is_input_toward_facing():
+			switch_state(STATE.DASH)
 
 
 func _update_state_knockback(delta: float) -> void:
@@ -563,6 +605,40 @@ func _update_state_knockback(delta: float) -> void:
 		else:
 			switch_state(STATE.FALL)
 
+
+func _update_state_dash(_qdelta) -> void:
+	is_sprinting = Input.is_action_pressed("dash")
+	dash_cooldown.start()
+	if is_on_floor():
+		coyote_timer.start()
+	if Input.is_action_just_pressed("jump"):
+		dash_jump_buffer = true
+	
+	var distance := absf(position.x - saved_position.x)
+	
+	if distance >= DASH_LENGTH:
+		if dash_jump_buffer and coyote_timer.time_left > 0:
+			switch_state(STATE.JUMP)
+		elif is_on_floor():
+			switch_state(STATE.FLOOR)
+		else:
+			switch_state(STATE.FALL)
+	elif can_wall_slide():
+		switch_state(STATE.WALL_SLIDE)
+
+
+# ------------------------------------- GETTERS ---------------------------------------------------
+
+func get_input_direction() -> float:
+	return signf(Input.get_axis("move_left", "move_right"))
+
+
+func get_aim_vector() -> Vector2:
+	return (get_global_mouse_position() - global_position).normalized()
+
+
+func get_bullet_damage() -> int:
+	return bullet_damage
 
 
 # ---------------------------------------- _ON METHODS -------------------------------------------

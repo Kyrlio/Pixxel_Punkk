@@ -11,7 +11,6 @@
 [ext_resource type="Texture2D" uid="uid://dgotdexsqb16x" path="res://assets/characters/player/holding_gun/jump.png" id="6_ovg4i"]
 [ext_resource type="Texture2D" uid="uid://c2tl7rw1wacce" path="res://assets/characters/player/gun/gun.png" id="7_1murt"]
 [ext_resource type="Texture2D" uid="uid://biuo4cu0el80s" path="res://assets/characters/player/holding_gun/run.png" id="7_5sj0x"]
-[ext_resource type="Texture2D" uid="uid://ifuy0dsmwcux" path="res://assets/characters/player/ledge_grab.png" id="7_j0oqr"]
 [ext_resource type="Texture2D" uid="uid://bhf0mhmqjl3ou" path="res://assets/characters/player/looking_at_you.png" id="7_ovg4i"]
 [ext_resource type="Texture2D" uid="uid://civupnxbto2se" path="res://assets/characters/player/wall_slidingl.png" id="9_7wli1"]
 [ext_resource type="Script" uid="uid://dky2eduxwjfdm" path="res://scenes/entities/player/camera.gd" id="10_ovg4i"]
@@ -216,6 +215,58 @@ tracks/3/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_7dqom"]
+resource_name = "dash"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals/Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("1_nh4ur")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [8]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/Sprite2D:scale")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.10000001, 0.3),
+"transitions": PackedFloat32Array(0.5, 3.5, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.5, 1), Vector2(1, 1)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Visuals/Sprite2D:offset")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -24)]
 }
 
 [sub_resource type="Animation" id="Animation_18p7g"]
@@ -706,45 +757,6 @@ tracks/6/keys = {
 "values": [false]
 }
 
-[sub_resource type="Animation" id="Animation_w3p2j"]
-resource_name = "ledge_grab"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Visuals/Sprite2D:texture")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("7_j0oqr")]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Visuals/Sprite2D:hframes")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Visuals/Sprite2D:scale")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(1, 1)]
-}
-
 [sub_resource type="Animation" id="Animation_yywfu"]
 resource_name = "looking_at_you"
 length = 0.05
@@ -907,13 +919,13 @@ tracks/3/keys = {
 _data = {
 &"RESET": SubResource("Animation_1murt"),
 &"attack_1": SubResource("Animation_knby6"),
+&"dash": SubResource("Animation_7dqom"),
 &"death": SubResource("Animation_18p7g"),
 &"double_jump": SubResource("Animation_xy2vv"),
 &"falling": SubResource("Animation_5sj0x"),
 &"hit": SubResource("Animation_fg2wu"),
 &"idle": SubResource("Animation_ovg4i"),
 &"jump": SubResource("Animation_7wli1"),
-&"ledge_grab": SubResource("Animation_w3p2j"),
 &"looking_at_you": SubResource("Animation_yywfu"),
 &"run": SubResource("Animation_j0oqr"),
 &"wall_slide": SubResource("Animation_pcd0u")
@@ -1029,21 +1041,25 @@ script = ExtResource("1_bjvvg")
 
 [node name="CoyoteTimer" type="Timer" parent="." unique_id=1061782584]
 unique_name_in_owner = true
+process_callback = 0
 wait_time = 0.15
 one_shot = true
 
-[node name="RollCooldown" type="Timer" parent="." unique_id=466703238]
+[node name="DashCooldown" type="Timer" parent="." unique_id=466703238]
 unique_name_in_owner = true
+process_callback = 0
 wait_time = 0.1
 one_shot = true
 
 [node name="FireRateTimer" type="Timer" parent="." unique_id=166848343]
 unique_name_in_owner = true
+process_callback = 0
 wait_time = 0.25
 one_shot = true
 
 [node name="HardLandingTimer" type="Timer" parent="." unique_id=1006512574]
 unique_name_in_owner = true
+process_callback = 0
 wait_time = 0.15
 one_shot = true
 
