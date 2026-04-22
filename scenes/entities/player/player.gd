@@ -78,6 +78,7 @@ const KNOCKBACK_DURATION := 0.25
 @onready var hurtbox_component: HurtboxComponent = %HurtboxComponent
 @onready var jump_buffer_timer: Timer = %JumpBufferTimer
 @onready var dash_buffer_timer: Timer = %DashBufferTimer
+@onready var health_bar: HealthBar = %HealthBar
 
 @export var bullet_damage: int = 1
 
@@ -472,8 +473,8 @@ func _enter_state_jump(_previous_state: STATE) -> void:
 
 
 func _enter_state_double_jump(_previous_state: STATE) -> void:
-	is_wall_sliding = false
 	animation_player.play("double_jump")
+	is_wall_sliding = false
 	wait_for_double_jump_animation_to_finish = true
 	begin_air_jump(DOUBLE_JUMP_VELOCITY, true) 
 
@@ -482,14 +483,15 @@ func _enter_state_wall_slide(_previous_state: STATE) -> void:
 	is_wall_sliding = true
 	can_double_jump = true
 	can_dash = true
+	
 	animation_player.play("wall_slide")
 	velocity.y = 0
-	# Orienter le sprite vers le mur
+	
 	var wall_dir = get_wall_direction()
 	visuals.scale = Vector2.ONE if wall_dir > 0 else Vector2(-1, 1)
 
 
-func _enter_state_wall_jump(previous_state: STATE) -> void:
+func _enter_state_wall_jump(_previous_state: STATE) -> void:
 	animation_player.play("jump")
 	velocity.y = WALL_JUMP_VELOCITY
 	saved_position = position
@@ -706,3 +708,5 @@ func _on_damaged() -> void:
 	GameEvents.emit_engine_freeze()
 	GameCamera.shake(1)
 	GameCamera.bump_zoom()
+	
+	health_bar.update_bar(health_component.current_health, health_component.max_health)

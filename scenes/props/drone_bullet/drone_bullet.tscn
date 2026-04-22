@@ -1,0 +1,101 @@
+[gd_scene format=3 uid="uid://dh2i6ev40ltkf"]
+
+[ext_resource type="Texture2D" uid="uid://ddtdqx4xt7w5k" path="res://assets/fx/fx.png" id="1_locc3"]
+[ext_resource type="Script" uid="uid://dlh6vkjy1jkcl" path="res://scenes/props/drone_bullet/drone_bullet.gd" id="1_te0br"]
+[ext_resource type="Script" uid="uid://dwutdrsq74sb2" path="res://components/hitbox_component/hitbox_component.gd" id="2_te0br"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ap7sx"]
+radius = 6.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ma46u"]
+radius = 3.0
+
+[sub_resource type="Gradient" id="Gradient_bjna0"]
+offsets = PackedFloat32Array(0, 0.5898204)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_locc3"]
+gradient = SubResource("Gradient_bjna0")
+width = 16
+height = 16
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Animation" id="Animation_bjna0"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("PointLight2D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_8qtdc"]
+resource_name = "default"
+loop_mode = 1
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("PointLight2D:scale")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1, 0.5)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_locc3"]
+_data = {
+&"RESET": SubResource("Animation_bjna0"),
+&"default": SubResource("Animation_8qtdc")
+}
+
+[node name="DroneBullet" type="Node2D" unique_id=1582274519]
+script = ExtResource("1_te0br")
+
+[node name="LifeTimer" type="Timer" parent="." unique_id=643112351]
+process_callback = 0
+wait_time = 2.0
+one_shot = true
+autostart = true
+
+[node name="HitboxComponent" type="Area2D" parent="." unique_id=1439636601]
+collision_layer = 1024
+collision_mask = 512
+script = ExtResource("2_te0br")
+metadata/_custom_type_script = "uid://dwutdrsq74sb2"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxComponent" unique_id=1600216512]
+shape = SubResource("CircleShape2D_ap7sx")
+
+[node name="EnvironmentHitbox" type="Area2D" parent="." unique_id=1909462229]
+collision_layer = 256
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EnvironmentHitbox" unique_id=573830564]
+rotation = -1.5707964
+shape = SubResource("CircleShape2D_ma46u")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=513134187]
+texture = ExtResource("1_locc3")
+region_enabled = true
+region_rect = Rect2(64, 176, 16, 16)
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1397547217]
+color = Color(1, 0.5019608, 0.5019608, 1)
+energy = 2.0
+texture = SubResource("GradientTexture2D_locc3")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=980698454]
+libraries/ = SubResource("AnimationLibrary_locc3")
+autoplay = &"default"
+
+[connection signal="body_entered" from="EnvironmentHitbox" to="." method="_on_hitbox_component_body_entered"]

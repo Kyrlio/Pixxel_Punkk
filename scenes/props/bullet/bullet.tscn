@@ -69,6 +69,7 @@ _data = {
 script = ExtResource("1_bjna0")
 
 [node name="LifeTimer" type="Timer" parent="." unique_id=1744169674]
+process_callback = 0
 wait_time = 2.0
 one_shot = true
 autostart = true

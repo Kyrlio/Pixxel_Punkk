@@ -10,9 +10,12 @@ enum STATE {
 	DEATH
 }
 
+const BULLET_SCENE = preload("uid://dh2i6ev40ltkf")
+
 const VISION_THRESHOLD: float = 0.5
 const PATROL_RADIUS: float = 100.0
-const ATTACK_RANGE: float = 20.0
+const MELEE_ATTACK_RANGE: float = 20.0
+const DISTANCE_ATTACK_RANGE: float = 100.0
 const KNOCKBACK_FORCE: float = 200.0
 const KNOCKBACK_DURATION: float = 0.15
 
@@ -134,8 +137,15 @@ func process_state(delta: float) -> void:
 				switch_state(STATE.INVESTIGATE)
 				return
 			
-			if can_attack_player() and attack_cooldown_timer.is_stopped():
+			if can_melee_attack_player() and attack_cooldown_timer.is_stopped():
 				switch_state(STATE.ATTACK)
+			
+			if can_distance_attack_player() and attack_cooldown_timer.is_stopped():
+				attack_cooldown_timer.start()
+				var bullet : DroneBullet = BULLET_SCENE.instantiate()
+				bullet.global_position = global_position
+				bullet.start(get_direction_to_player())
+				get_parent().add_child(bullet, true)
 			
 			var target = Vector2i(pos_to_cell(player.position))
 			if target != target_cell:
@@ -231,12 +241,24 @@ func is_player_in_detection_area() -> bool:
 	return player_in_detection_area
 
 
-func can_attack_player() -> bool:
+## Return true if the enemy can melee attack the player
+## return false otherwise
+func can_melee_attack_player() -> bool:
 	if not player:
 		return false
 	
-	var distance_to_player = global_position.distance_to(player.global_position)
-	return distance_to_player <= ATTACK_RANGE
+	var distance_to_player = get_distance_to_player()
+	return distance_to_player <= MELEE_ATTACK_RANGE
+
+
+## Return true if the enemy can distance attack the player
+## return false otherwise
+func can_distance_attack_player() -> bool:
+	if not player or can_melee_attack_player():
+		return false
+	
+	var distance_to_player = get_distance_to_player()
+	return distance_to_player <= DISTANCE_ATTACK_RANGE
 
 
 func searching(delta: float) -> void:
@@ -278,6 +300,20 @@ func update_visuals_facing() -> void:
 
 func _can_move(value: bool) -> void:
 	can_move = value
+
+
+func get_direction_to_player() -> Vector2:
+	if not player:
+		push_error("get_direction_to_player: no player")
+	
+	return global_position.direction_to(player.global_position)
+
+
+func get_distance_to_player() -> float:
+	if not player:
+		push_error("get_distance_to_player: no player")
+	
+	return global_position.distance_to(player.global_position)
 
 
 func _on_detection_area_body_entered(body: Node2D) -> void:

@@ -9,8 +9,6 @@ func _ready() -> void:
 
 func set_pointing_hand_cursor(toggled: bool) -> void:
 	if toggled:
-		print("hand")
 		Input.set_custom_mouse_cursor(pointing_hand_cursor)
 	else:
-		print("default")
 		Input.set_custom_mouse_cursor(default_cursor)
