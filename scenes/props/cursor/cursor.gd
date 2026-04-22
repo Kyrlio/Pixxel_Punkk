@@ -1,29 +1,16 @@
 extends CanvasLayer
 
-@onready var cursor_sprite: Sprite2D = %CursorSprite
-
-
+var default_cursor := load("uid://cr1w2deamuhrd")
+var pointing_hand_cursor := load("uid://c0mj2iwfce1oy")
 
 func _ready() -> void:
-	# Afficher le curseur personnalisé au démarrage
-	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
-	cursor_sprite.visible = true
+	Input.set_custom_mouse_cursor(default_cursor)
 
 
-func _process(_delta: float) -> void:
-	cursor_sprite.global_position = cursor_sprite.get_global_mouse_position()
-
-
-func change_cursor(sprite: CompressedTexture2D, cursor_scale := Vector2.ONE, cursor_pos := Vector2(-10,-8)):
-	cursor_sprite.texture = sprite
-	cursor_sprite.scale = cursor_scale
-	cursor_sprite.offset = cursor_pos
-
-
-func show_cursor(visibility: bool):
-	cursor_sprite.visible = visibility
-	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
-
-
-func get_actual_cursor() -> CompressedTexture2D:
-	return cursor_sprite.texture
+func set_pointing_hand_cursor(toggled: bool) -> void:
+	if toggled:
+		print("hand")
+		Input.set_custom_mouse_cursor(pointing_hand_cursor)
+	else:
+		print("default")
+		Input.set_custom_mouse_cursor(default_cursor)

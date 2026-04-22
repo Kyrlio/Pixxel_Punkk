@@ -1,16 +1,8 @@
 [gd_scene format=3 uid="uid://dwa4mxdld0con"]
 
-[ext_resource type="Texture2D" uid="uid://cxmy2xca7ibge" path="res://assets/ui/ui.png" id="1_nbm88"]
 [ext_resource type="Script" uid="uid://cp4kr0v1e8wla" path="res://scenes/props/cursor/cursor.gd" id="1_q7mry"]
 
 [node name="Cursor" type="CanvasLayer" unique_id=853395266]
 process_mode = 3
 layer = 100000
 script = ExtResource("1_q7mry")
-
-[node name="CursorSprite" type="Sprite2D" parent="." unique_id=1437074376]
-unique_name_in_owner = true
-texture = ExtResource("1_nbm88")
-offset = Vector2(3, 4)
-region_enabled = true
-region_rect = Rect2(144, 80, 16, 16)
