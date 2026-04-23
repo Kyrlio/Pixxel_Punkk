@@ -14,12 +14,6 @@ var back_tween: Tween
 var pulse_tween: Tween = null
 
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		if event.is_pressed() and event.keycode == KEY_SPACE:
-			update_bar(back_bar.value - 10, 100)
-
-
 func update_bar(current: float, max_value: float) -> void:
 	var pct = clamp(current / max_value, 0.0, 1.0)
 	
