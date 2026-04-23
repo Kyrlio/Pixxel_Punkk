@@ -570,7 +570,7 @@ health = 5
 
 [node name="AttackCooldownTimer" type="Timer" parent="." unique_id=1187488990]
 process_callback = 0
-wait_time = 0.5
+wait_time = 1.5
 one_shot = true
 
 [node name="HealthComponent" type="Node" parent="." unique_id=176501763]

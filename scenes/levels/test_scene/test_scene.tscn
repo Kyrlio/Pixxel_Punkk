@@ -1119,7 +1119,7 @@ script = ExtResource("1_dwrwk")
 map = NodePath("TileMapLayers/Foreground")
 
 [node name="Player" parent="." unique_id=1054921170 instance=ExtResource("2_widsn")]
-position = Vector2(234, 381)
+position = Vector2(240, 386)
 
 [node name="ParallaxLayers" type="Node2D" parent="." unique_id=1302500387]
 z_index = -5
@@ -1247,9 +1247,6 @@ position = Vector2(136, 16)
 [node name="DroneEnemy" parent="Enemies" unique_id=402783546 instance=ExtResource("9_k6jje")]
 unique_name_in_owner = true
 position = Vector2(89, 324)
-
-[node name="DroneEnemy2" parent="Enemies" unique_id=677757825 instance=ExtResource("9_k6jje")]
-position = Vector2(372, 40)
 
 [node name="DroneEnemy3" parent="Enemies" unique_id=1302649830 instance=ExtResource("9_k6jje")]
 position = Vector2(539, 269)

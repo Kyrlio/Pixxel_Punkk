@@ -10,7 +10,7 @@ enum STATE {
 	DASH,
 	HARD_LANDING,
 	DEAD,
-	KNOCKBACK,
+	HURT,
 	SLIDING,
 }
 
@@ -92,6 +92,7 @@ var can_roll: bool = false
 var can_fire: bool = true
 var can_move: bool = true
 var can_dash: bool = false
+
 var dash_jump_buffer: bool = false
 var wait_for_double_jump_animation_to_finish: bool = false
 var is_wall_sliding: bool = false
@@ -133,7 +134,7 @@ func switch_state(to_state: STATE) -> void:
 		STATE.WALL_SLIDE:		_enter_state_wall_slide(previous_state)
 		STATE.WALL_JUMP:		_enter_state_wall_jump(previous_state)
 		STATE.DEAD:				_enter_state_dead(previous_state)
-		STATE.KNOCKBACK:		_enter_state_knockback(previous_state)
+		STATE.HURT:				_enter_state_hurt(previous_state)
 
 
 func _process_state(delta: float) -> void:
@@ -142,7 +143,7 @@ func _process_state(delta: float) -> void:
 		STATE.FLOOR:									_update_state_floor(delta)
 		STATE.JUMP, STATE.DOUBLE_JUMP, STATE.WALL_JUMP: _update_state_jump(delta)
 		STATE.WALL_SLIDE: 								_update_state_wall_slide(delta)
-		STATE.KNOCKBACK: 								_update_state_knockback(delta)
+		STATE.HURT: 									_update_state_hurt(delta)
 		STATE.DASH:										_update_state_dash(delta)
 
 
@@ -536,11 +537,12 @@ func _enter_state_dead(_previous_state: STATE) -> void:
 	animation_player.play("death")
 
 
-func _enter_state_knockback(_previous_state: STATE) -> void:
+func _enter_state_hurt(_previous_state: STATE) -> void:
 	can_fire = false
 	is_wall_sliding = false
 	velocity = knockback_velocity
 	animation_player.play("hit")
+	_on_damaged()
 
 
 
@@ -633,7 +635,7 @@ func _update_state_wall_slide(delta: float) -> void:
 			switch_state(STATE.DASH)
 
 
-func _update_state_knockback(delta: float) -> void:
+func _update_state_hurt(delta: float) -> void:
 	velocity.y = minf(velocity.y + FALL_GRAVITY * delta, FALL_VELOCITY)
 			
 	knockback_time_left -= delta
@@ -697,7 +699,7 @@ func _on_hit_by_hitbox(source_hitbox: HitboxComponent) -> void:
 		
 	knockback_velocity = Vector2(knockback_dir * KNOCKBACK_FORCE, KNOCKBACK_UPWARD_FORCE)
 	knockback_time_left = KNOCKBACK_DURATION
-	switch_state(STATE.KNOCKBACK)
+	switch_state(STATE.HURT)
 
 
 func _on_died() -> void:
@@ -710,3 +712,18 @@ func _on_damaged() -> void:
 	GameCamera.bump_zoom()
 	
 	health_bar.update_bar(health_component.current_health, health_component.max_health)
+	
+	hurtbox_component.is_invincible = true
+	
+	var invincible_tween := get_tree().create_tween().set_trans(Tween.TRANS_CUBIC)
+	var invincible_time: float = 1.0
+	invincible_tween.tween_property(visuals, "modulate:a", 1.0, invincible_time / 4.0)
+	invincible_tween.chain().tween_property(visuals, "modulate:a", 0.5, invincible_time / 4.0)
+	invincible_tween.chain().chain().tween_property(visuals, "modulate:a", 1.0, invincible_time / 4.0)
+	invincible_tween.chain().chain().chain().tween_property(visuals, "modulate:a", 0.5, invincible_time / 4.0)
+	invincible_tween.chain().chain().chain().chain().tween_property(visuals, "modulate:a", 1.0, invincible_time / 4.0).finished.connect(
+		_reset_can_take_damage)
+
+
+func _reset_can_take_damage() -> void:
+	hurtbox_component.is_invincible = false

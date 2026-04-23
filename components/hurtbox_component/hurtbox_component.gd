@@ -7,13 +7,14 @@ signal hit_by_hitbox(hitbox_component: HitboxComponent)
 
 var peer_id_filter: int = -1
 var disable_collisions: bool
+var is_invincible: bool = false
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 
 
 func _handle_hit(hitbox_component: HitboxComponent):
-	if hitbox_component.is_hit_handled or disable_collisions:
+	if hitbox_component.is_hit_handled or disable_collisions or is_invincible:
 		# Hit only one enemy
 		return
 	

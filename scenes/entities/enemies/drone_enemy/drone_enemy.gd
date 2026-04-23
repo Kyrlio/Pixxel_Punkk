@@ -50,6 +50,9 @@ var look_time: float = 0.0
 
 var alert_tween: Tween
 
+var investigate_sweep_angle: float = 0.0
+var investigating_sweeping: bool = false
+
 func setup(_grid: AStarGrid2D):
 	grid = _grid
 	current_cell = pos_to_cell(global_position)
@@ -98,6 +101,13 @@ func switch_state(to_state: STATE) -> void:
 			
 		STATE.INVESTIGATE:
 			animation_player.play("default")
+			
+			var target = pos_to_cell(player_old_position)
+			if target != current_cell and try_navigate_to_cell(target):
+				investigating_sweeping = false
+			else:
+				investigating_sweeping = true
+				investigate_sweep_angle = 0.0
 		
 		STATE.ATTACK:
 			animation_player.play("attack")
@@ -147,14 +157,9 @@ func process_state(delta: float) -> void:
 				bullet.start(get_direction_to_player())
 				get_parent().add_child(bullet, true)
 			
-			var target = Vector2i(pos_to_cell(player.position))
+			var target = pos_to_cell(player.position)
 			if target != target_cell:
-				var new_path = grid.get_point_path(current_cell, target)
-				if new_path:
-					move_pts = new_path
-					move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
-					target_cell = target
-					start_move()
+				try_navigate_to_cell(target)
 			
 			process_movement(delta)
 			
@@ -164,10 +169,22 @@ func process_state(delta: float) -> void:
 				switch_state(STATE.CHASE)
 				return
 				
-			var is_moving = process_movement(delta)
-			if not is_moving:
-				patrol_center = global_position
-				switch_state(STATE.PATROL)
+			if not investigating_sweeping:
+				var is_moving = process_movement(delta)
+				if not is_moving:
+					investigating_sweeping = true
+					investigate_sweep_angle = 0.0
+			else:
+				velocity = Vector2.ZERO
+				move_and_slide()
+				
+				var sweep_speed: float = PI
+				investigate_sweep_angle += sweep_speed * delta
+				look_direction = Vector2.RIGHT.rotated(base_look_angle - investigate_sweep_angle)
+				
+				if investigate_sweep_angle >= PI * 2:
+					patrol_center = global_position
+					switch_state(STATE.PATROL)
 		
 		STATE.ATTACK:
 			velocity = Vector2.ZERO
@@ -217,12 +234,22 @@ func generate_random_patrol_path() -> void:
 	var target = pos_to_cell(target_pos)
 	
 	if grid.region.has_point(target) and target != current_cell:
-		var new_path = grid.get_point_path(current_cell, target)
-		if new_path and new_path.size() > 0:
-			move_pts = new_path
-			move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
-			target_cell = target
-			start_move()
+		try_navigate_to_cell(target)
+
+
+func try_navigate_to_cell(target: Vector2i) -> bool:
+	if not grid:
+		return false
+		
+	var new_path = grid.get_point_path(current_cell, target)
+	if new_path and new_path.size() > 0:
+		move_pts = new_path
+		move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
+		target_cell = target
+		start_move()
+		return true
+		
+	return false
 
 
 func start_move() -> void:
@@ -269,6 +296,9 @@ func searching(delta: float) -> void:
 
 
 func check_player_visibility() -> bool:
+	if not player or not is_player_in_detection_area():
+		return false
+		
 	var player_direction: Vector2 = (player.global_position - global_position).normalized()
 	
 	var dot_product = look_direction.dot(player_direction)
@@ -292,8 +322,7 @@ func update_visuals_facing() -> void:
 		look_time = 0.0
 	
 	if flashlight:
-		#flashlight.rotation = look_direction.angle()
-		flashlight.rotation = lerp(flashlight.rotation, look_direction.angle(), 0.1)
+		flashlight.rotation = lerp_angle(flashlight.rotation, look_direction.angle(), 0.1)
 	
 	visuals.scale = Vector2.ONE if look_direction.x >= 0 else Vector2(-1, 1)
 
@@ -346,13 +375,8 @@ func _on_damaged() -> void:
 		knockback_time_left = KNOCKBACK_DURATION
 		
 		var target = pos_to_cell(player_old_position)
-		if target != current_cell and grid:
-			var new_path = grid.get_point_path(current_cell, target)
-			if new_path and new_path.size() > 0:
-				move_pts = new_path
-				move_pts = (move_pts as Array).map(func (p): return p + grid.cell_size / 2.0)
-				target_cell = target
-				start_move()
+		if target != current_cell:
+			try_navigate_to_cell(target)
 	
 	switch_state(STATE.KNOCKBACK)
 
