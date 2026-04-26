@@ -5,6 +5,7 @@ extends RigidBody2D
 @onready var sleep_timer: Timer = $SleepTimer
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 @onready var ray_cast_2d: RayCast2D = $RayCast2D
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 @export var speed_min: float = 90.0
 @export var speed_max: float = 150.0
@@ -25,7 +26,7 @@ func start(aim_vector: Vector2) -> void:
 
 
 func _on_life_timer_timeout() -> void:
-	queue_free.call_deferred()
+	animation_player.play("fade")
 
 
 func _on_sleep_timer_timeout() -> void:

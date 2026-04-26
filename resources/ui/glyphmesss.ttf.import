@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://bxdbr3hp11ocm"
-path="res://.godot/imported/glyphmesss.ttf-a027305fdc0e86a8962bb3da9c6a4555.fontdata"
+path="res://.godot/imported/glyphmesss.ttf-077e9720c75b9a6bfc5e0117a4731a44.fontdata"
 
 [deps]
 
-source_file="res://assets/glyphmesss.ttf"
-dest_files=["res://.godot/imported/glyphmesss.ttf-a027305fdc0e86a8962bb3da9c6a4555.fontdata"]
+source_file="res://resources/ui/glyphmesss.ttf"
+dest_files=["res://.godot/imported/glyphmesss.ttf-077e9720c75b9a6bfc5e0117a4731a44.fontdata"]
 
 [params]
 

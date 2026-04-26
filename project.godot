@@ -40,12 +40,17 @@ folder_colors={
 "res://assets/": "green",
 "res://components/": "yellow",
 "res://resources/": "purple",
-"res://scenes/": "blue"
+"res://scenes/": "blue",
+"res://scripts/": "gray"
 }
 
 [global_group]
 
 player=""
+
+[gui]
+
+theme/custom="uid://bln7f4jc5kckw"
 
 [input]
 

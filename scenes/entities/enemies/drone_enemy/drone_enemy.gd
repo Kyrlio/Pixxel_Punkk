@@ -11,6 +11,7 @@ enum STATE {
 }
 
 const BULLET_SCENE = preload("uid://dh2i6ev40ltkf")
+const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
 
 const VISION_THRESHOLD: float = 0.5
 const PATROL_RADIUS: float = 100.0
@@ -27,6 +28,7 @@ const KNOCKBACK_DURATION: float = 0.15
 @onready var flashlight: PointLight2D = $Flashlight
 @onready var attack_cooldown_timer: Timer = $AttackCooldownTimer
 @onready var alert_sprite: Sprite2D = $AlertSprite
+@onready var hitbox_cshape: CollisionShape2D = $HitboxComponent/CollisionShape2D
 
 var active_state: STATE = STATE.PATROL
 var player: Player
@@ -80,20 +82,22 @@ func _physics_process(delta: float) -> void:
 
 
 func switch_state(to_state: STATE) -> void:
-	var _previous_state: STATE = active_state
+	var previous_state: STATE = active_state
 	active_state = to_state
 	
 	match active_state:
 		STATE.PATROL:
+			hitbox_cshape.shape.radius = 4
 			animation_player.play("default")
 		
 		STATE.CHASE:
+			hitbox_cshape.shape.radius = 4
 			animation_player.play("default")
 			
 			if alert_tween != null and alert_tween.is_valid():
 				alert_tween.kill()
 			
-			if alert_sprite:
+			if alert_sprite and previous_state == STATE.PATROL:
 				alert_tween = create_tween()
 				alert_tween.tween_property(alert_sprite, "scale", Vector2.ONE, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TransitionType.TRANS_BACK)
 				alert_tween.tween_interval(0.2)
@@ -110,8 +114,12 @@ func switch_state(to_state: STATE) -> void:
 				investigate_sweep_angle = 0.0
 		
 		STATE.ATTACK:
-			animation_player.play("attack")
 			attack_cooldown_timer.start()
+			var bullet : DroneBullet = BULLET_SCENE.instantiate()
+			bullet.global_position = global_position
+			bullet.start(get_direction_to_player())
+			get_parent().add_child(bullet, true)
+			spawn_muzzle_flash()
 		
 		STATE.KNOCKBACK:
 			hit_flash_animation.play("hit")
@@ -147,15 +155,8 @@ func process_state(delta: float) -> void:
 				switch_state(STATE.INVESTIGATE)
 				return
 			
-			if can_melee_attack_player() and attack_cooldown_timer.is_stopped():
-				switch_state(STATE.ATTACK)
-			
 			if can_distance_attack_player() and attack_cooldown_timer.is_stopped():
-				attack_cooldown_timer.start()
-				var bullet : DroneBullet = BULLET_SCENE.instantiate()
-				bullet.global_position = global_position
-				bullet.start(get_direction_to_player())
-				get_parent().add_child(bullet, true)
+				switch_state(STATE.ATTACK)
 			
 			var target = pos_to_cell(player.position)
 			if target != target_cell:
@@ -189,6 +190,7 @@ func process_state(delta: float) -> void:
 		STATE.ATTACK:
 			velocity = Vector2.ZERO
 			move_and_slide()
+			switch_state(STATE.CHASE)
 			
 		STATE.KNOCKBACK:
 			velocity = knockback_velocity
@@ -223,6 +225,13 @@ func process_movement(delta: float) -> bool:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return false
+
+
+func spawn_muzzle_flash() -> void:
+	var muzzle_flash: Node2D = MUZZLE_FLASH_SCENE.instantiate()
+	muzzle_flash.global_position = global_position
+	muzzle_flash.rotation = get_direction_to_player().angle()
+	get_parent().add_child(muzzle_flash)
 
 
 func generate_random_patrol_path() -> void:
@@ -335,7 +344,7 @@ func get_direction_to_player() -> Vector2:
 	if not player:
 		push_error("get_direction_to_player: no player")
 	
-	return global_position.direction_to(player.global_position)
+	return global_position.direction_to(player.global_position + Vector2(0, -8))
 
 
 func get_distance_to_player() -> float:

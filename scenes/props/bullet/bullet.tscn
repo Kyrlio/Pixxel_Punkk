@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bsjdw5r8krt5f" path="res://scenes/props/bullet/bullet.gd" id="1_bjna0"]
 [ext_resource type="Script" uid="uid://dwutdrsq74sb2" path="res://components/hitbox_component/hitbox_component.gd" id="1_xmxq7"]
 [ext_resource type="Texture2D" uid="uid://ddtdqx4xt7w5k" path="res://assets/fx/fx.png" id="2_35c64"]
+[ext_resource type="Shader" uid="uid://bnh2i7fvd3dyd" path="res://resources/shaders/pixelate.gdshader" id="3_8qtdc"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bjna0"]
 radius = 4.0
@@ -11,6 +12,11 @@ height = 14.0
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8qtdc"]
 radius = 2.0
 height = 10.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6ulta"]
+shader = ExtResource("3_8qtdc")
+shader_parameter/pixelation = 1.0
+shader_parameter/controlEdges = false
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8qtdc"]
 atlas = ExtResource("2_35c64")
@@ -92,6 +98,7 @@ rotation = -1.5707964
 shape = SubResource("CapsuleShape2D_8qtdc")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=629127478]
+material = SubResource("ShaderMaterial_6ulta")
 scale = Vector2(0.8, 0.8)
 texture = SubResource("AtlasTexture_8qtdc")
 

@@ -1,0 +1,65 @@
+[gd_resource type="Theme" format=3 uid="uid://bln7f4jc5kckw"]
+
+[ext_resource type="FontFile" uid="uid://bxdbr3hp11ocm" path="res://resources/ui/glyphmesss.ttf" id="1_qfwp4"]
+[ext_resource type="Texture2D" uid="uid://cxmy2xca7ibge" path="res://assets/ui/ui.png" id="2_626q5"]
+[ext_resource type="Texture2D" uid="uid://uw3mllqysy1s" path="res://assets/ui/buttons.png" id="3_id20u"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gofuw"]
+texture = ExtResource("2_626q5")
+texture_margin_left = 2.0
+texture_margin_top = 2.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(208, 80, 48, 16)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_p5woc"]
+load_path = "res://.godot/imported/buttons.png-12fe8cd646fbf8701fc35ae7af4f992b.ctex"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_b3vpb"]
+texture = SubResource("CompressedTexture2D_p5woc")
+texture_margin_left = 4.0
+texture_margin_top = 5.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(0, 0, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_id20u"]
+texture = ExtResource("3_id20u")
+texture_margin_left = 4.0
+texture_margin_top = 5.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(0, 0, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7kyrn"]
+texture = ExtResource("3_id20u")
+texture_margin_left = 4.0
+texture_margin_top = 5.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(16, 0, 16, 16)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_gte0t"]
+load_path = "res://.godot/imported/buttons.png-12fe8cd646fbf8701fc35ae7af4f992b.ctex"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7a8ve"]
+texture = SubResource("CompressedTexture2D_gte0t")
+texture_margin_left = 4.0
+texture_margin_top = 5.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 0, 16, 16)
+
+[resource]
+Button/colors/font_color = Color(0.37254903, 0.40392157, 0.8509804, 1)
+Button/colors/font_focus_color = Color(0.91764706, 0.8117647, 0.7294118, 1)
+Button/colors/font_hover_color = Color(0.91764706, 0.8117647, 0.7294118, 1)
+Button/colors/font_pressed_color = Color(0.9019608, 0.7411765, 0.41960785, 1)
+Button/fonts/font = ExtResource("1_qfwp4")
+Button/styles/disabled = SubResource("StyleBoxTexture_gofuw")
+Button/styles/focus = SubResource("StyleBoxTexture_b3vpb")
+Button/styles/hover = SubResource("StyleBoxTexture_id20u")
+Button/styles/normal = SubResource("StyleBoxTexture_7kyrn")
+Button/styles/pressed = SubResource("StyleBoxTexture_7a8ve")
+Label/colors/font_color = Color(0.91764706, 0.8117647, 0.7294118, 1)
+Label/fonts/font = ExtResource("1_qfwp4")

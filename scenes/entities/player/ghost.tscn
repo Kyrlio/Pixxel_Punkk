@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://dxvaf4chennmy"]
+
+[ext_resource type="Texture2D" uid="uid://77bt1by2w4ol" path="res://assets/characters/player/idle.png" id="1_3vuf6"]
+[ext_resource type="Script" uid="uid://cs6tjjsiki5rd" path="res://scenes/entities/player/ghost.gd" id="2_s3nne"]
+
+[node name="Ghost" type="Sprite2D" unique_id=81925692]
+modulate = Color(0.44705883, 0.44705883, 0.44705883, 1)
+show_behind_parent = true
+texture = ExtResource("1_3vuf6")
+offset = Vector2(0, -24)
+region_enabled = true
+region_rect = Rect2(336, 0, 48, 48)
+script = ExtResource("2_s3nne")

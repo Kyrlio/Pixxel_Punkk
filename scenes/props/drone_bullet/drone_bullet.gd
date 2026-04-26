@@ -1,6 +1,8 @@
 class_name DroneBullet
 extends Node2D
 
+const MUZZLE_FLASH_SCENE = preload("uid://we7xx2omqegd")
+
 const SPEED: int = 100
 
 @onready var life_timer: Timer = $LifeTimer

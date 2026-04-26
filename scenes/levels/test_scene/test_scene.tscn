@@ -5,13 +5,13 @@
 [ext_resource type="Texture2D" uid="uid://dn2ymb2hbd4bp" path="res://assets/environment/background.png" id="2_88e55"]
 [ext_resource type="PackedScene" uid="uid://dklwae4lhm4kg" path="res://scenes/entities/player/player.tscn" id="2_widsn"]
 [ext_resource type="Texture2D" uid="uid://u4r1w4c1jujy" path="res://assets/spotlight.png" id="4_88e55"]
-[ext_resource type="FontFile" uid="uid://bxdbr3hp11ocm" path="res://assets/glyphmesss.ttf" id="5_di761"]
+[ext_resource type="FontFile" uid="uid://bxdbr3hp11ocm" path="res://resources/ui/glyphmesss.ttf" id="5_di761"]
 [ext_resource type="PackedScene" uid="uid://c8p7h7b8dvdiv" path="res://scenes/entities/enemies/ground_enemy/ground_enemy.tscn" id="6_qelss"]
 [ext_resource type="PackedScene" uid="uid://dqbbdkhdp7pxd" path="res://scenes/entities/enemies/spiky_enemy/spiky_enemy.tscn" id="7_0vvr3"]
 [ext_resource type="PackedScene" uid="uid://dkhtg5mxnno8m" path="res://scenes/props/coin/coin.tscn" id="8_yyh0g"]
 [ext_resource type="PackedScene" uid="uid://cfgx0xoasbgrl" path="res://scenes/entities/enemies/drone_enemy/drone_enemy.tscn" id="9_k6jje"]
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_di761"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_dwrwk"]
 texture = ExtResource("2_88e55")
 1:1/0 = 0
 2:1/0 = 0
@@ -146,7 +146,7 @@ texture = ExtResource("2_88e55")
 11:23/0 = 0
 
 [sub_resource type="TileSet" id="TileSet_qelss"]
-sources/0 = SubResource("TileSetAtlasSource_di761")
+sources/0 = SubResource("TileSetAtlasSource_dwrwk")
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_widsn"]
 polygon = PackedVector2Array(8, -8, -8, -8, -8, 7, 8, 7)
@@ -250,7 +250,7 @@ polygon = PackedVector2Array(-8, -8, 7, -8, 7, 8, -8, 8)
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_svgjj"]
 polygon = PackedVector2Array(8, -8, -8, -8, -8, 8, 8, 8)
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_88e55"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bdg55"]
 texture = ExtResource("1_bujen")
 0:1/0 = 0
 1:1/0 = 0
@@ -640,7 +640,7 @@ physics_layer_0/collision_mask = 0
 terrain_set_0/mode = 0
 terrain_set_0/terrain_0/name = "Terrain 0"
 terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
-sources/0 = SubResource("TileSetAtlasSource_88e55")
+sources/0 = SubResource("TileSetAtlasSource_bdg55")
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_8l5ri"]
 polygon = PackedVector2Array(-6, -6, 8, -6, 8, 8, -6, 8)
@@ -654,7 +654,7 @@ polygon = PackedVector2Array(6, -6, -8, -6, -8, 8, 6, 8)
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_j3aiq"]
 polygon = PackedVector2Array(-6, -6, 6, -6, 6, 8, -6, 8)
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_qelss"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_w52jh"]
 texture = ExtResource("1_bujen")
 0:1/0 = 0
 1:1/0 = 0
@@ -1102,13 +1102,13 @@ terrain_set_0/terrain_0/name = "Terrain 0"
 terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
 custom_data_layer_0/name = "obstacle"
 custom_data_layer_0/type = 1
-sources/0 = SubResource("TileSetAtlasSource_qelss")
+sources/0 = SubResource("TileSetAtlasSource_w52jh")
 
-[sub_resource type="Gradient" id="Gradient_widsn"]
+[sub_resource type="Gradient" id="Gradient_fagb8"]
 colors = PackedColorArray(0.63529414, 0.68235296, 0.8352941, 1, 0.63529414, 0.68235296, 0.8352941, 1)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_88e55"]
-gradient = SubResource("Gradient_widsn")
+gradient = SubResource("Gradient_fagb8")
 width = 460
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_6iml8"]
@@ -1119,7 +1119,7 @@ script = ExtResource("1_dwrwk")
 map = NodePath("TileMapLayers/Foreground")
 
 [node name="Player" parent="." unique_id=1054921170 instance=ExtResource("2_widsn")]
-position = Vector2(240, 386)
+position = Vector2(326, 120)
 
 [node name="ParallaxLayers" type="Node2D" parent="." unique_id=1302500387]
 z_index = -5

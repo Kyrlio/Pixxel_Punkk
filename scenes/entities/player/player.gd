@@ -7,7 +7,7 @@ enum STATE {
 	DOUBLE_JUMP,
 	WALL_SLIDE,
 	WALL_JUMP,
-	DASH,
+	DASH, #6
 	HARD_LANDING,
 	DEAD,
 	HURT,
@@ -26,7 +26,7 @@ const GROUND_FRICTION := 1500.0
 const FALL_GRAVITY := 1200.0
 const FALL_VELOCITY := 600.0
 const JUMP_VELOCITY := -225.0
-const DOUBLE_JUMP_VELOCITY := -250.0
+const DOUBLE_JUMP_VELOCITY := -275.0
 const JUMP_HOLD_GRAVITY := 900.0
 const JUMP_CUT_GRAVITY := 1900.0
 const AIR_ACCELERATION := 900.0
@@ -54,6 +54,7 @@ const WALL_JUMP_VELOCITY := -250.0
 
 const DASH_LENGTH := 20.0
 const DASH_VELOCITY := 350.0
+const GHOST_SPAWN_DELAY := 0.025
 
 const KNOCKBACK_FORCE := 115.0
 const KNOCKBACK_UPWARD_FORCE := -150.0
@@ -62,25 +63,31 @@ const KNOCKBACK_DURATION := 0.25
 
 @onready var visuals: Node2D = %Visuals
 @onready var sprite: Sprite2D = %Sprite2D
-@onready var coyote_timer: Timer = %CoyoteTimer
-@onready var dash_cooldown: Timer = %DashCooldown
 @onready var player_collider: CollisionShape2D = %PlayerCollider
 @onready var animation_player: AnimationPlayer = %AnimationPlayer
 @onready var weapon_animation_player: AnimationPlayer = $WeaponAnimationPlayer
 @onready var weapon_root: Node2D = %WeaponRoot
 @onready var weapon_animation_root: Node2D = $Visuals/WeaponRoot/WeaponAnimationRoot
-@onready var fire_rate_timer: Timer = %FireRateTimer
 @onready var barrel_position: Marker2D = %BarrelPosition
-@onready var hard_landing_timer: Timer = %HardLandingTimer
 @onready var wall_slide_raycast: RayCast2D = %WallSlideRaycast
 @onready var wall_slide_raycast_2: RayCast2D = %WallSlideRaycast2
+
+# Components
 @onready var health_component: HealthComponent = %HealthComponent
 @onready var hurtbox_component: HurtboxComponent = %HurtboxComponent
-@onready var jump_buffer_timer: Timer = %JumpBufferTimer
-@onready var dash_buffer_timer: Timer = %DashBufferTimer
 @onready var health_bar: HealthBar = %HealthBar
 
+# Timers
+@onready var coyote_timer: Timer = %CoyoteTimer
+@onready var dash_cooldown: Timer = %DashCooldown
+@onready var fire_rate_timer: Timer = %FireRateTimer
+@onready var hard_landing_timer: Timer = %HardLandingTimer
+@onready var jump_buffer_timer: Timer = %JumpBufferTimer
+@onready var dash_buffer_timer: Timer = %DashBufferTimer
+@onready var dash_invincibility_timer: Timer = %DashInvincibilityTimer
+
 @export var bullet_damage: int = 1
+@export var ghost_node: PackedScene
 
 var active_state: STATE = STATE.FALL
 var facing_direction := 1.0
@@ -99,6 +106,7 @@ var is_wall_sliding: bool = false
 var is_sprinting: bool = false
 var knockback_time_left: float = 0.0
 var knockback_velocity: Vector2 = Vector2.ZERO
+var ghost_spawn_timer: float = 0.0
 
 var firing_tween: Tween
 var landing_tween: Tween
@@ -145,6 +153,12 @@ func _process_state(delta: float) -> void:
 		STATE.WALL_SLIDE: 								_update_state_wall_slide(delta)
 		STATE.HURT: 									_update_state_hurt(delta)
 		STATE.DASH:										_update_state_dash(delta)
+
+
+func add_ghost() -> void:
+	var ghost = ghost_node.instantiate()
+	ghost.set_property(position, visuals.scale)
+	get_tree().current_scene.add_child(ghost)
 
 
 func update_input_buffers() -> void:
@@ -498,11 +512,19 @@ func _enter_state_wall_jump(_previous_state: STATE) -> void:
 	saved_position = position
 
 
-func _enter_state_dash(previous_state: STATE) -> void:
-	is_wall_sliding = false
+func _enter_state_dash(previous_state: STATE) -> void:	
 	if dash_cooldown.time_left > 0:
 		active_state = previous_state
 		return
+	
+	dash_invincibility_timer.start()
+	
+	is_wall_sliding = false
+	hurtbox_component.monitorable = false
+	hurtbox_component.monitoring = false
+	
+	ghost_spawn_timer = 0.0
+	add_ghost()
 	animation_player.play("dash")
 	velocity.y = 0
 	
@@ -646,9 +668,16 @@ func _update_state_hurt(delta: float) -> void:
 			switch_state(STATE.FALL)
 
 
-func _update_state_dash(_qdelta) -> void:
-	is_sprinting = Input.is_action_pressed("dash")
+func _update_state_dash(delta) -> void:
 	dash_cooldown.start()
+	
+	ghost_spawn_timer += delta
+	if ghost_spawn_timer >= GHOST_SPAWN_DELAY:
+		add_ghost()
+		ghost_spawn_timer = 0.0
+	
+	is_sprinting = Input.is_action_pressed("dash")
+	
 	if is_on_floor():
 		coyote_timer.start()
 	if has_jump_buffer():
@@ -727,3 +756,14 @@ func _on_damaged() -> void:
 
 func _reset_can_take_damage() -> void:
 	hurtbox_component.is_invincible = false
+
+
+func _on_dash_invincibility_timer_timeout() -> void:
+	hurtbox_component.monitorable = true
+	hurtbox_component.monitoring = true
+	
+	if active_state == STATE.DASH:
+		if is_on_floor():
+			switch_state(STATE.FLOOR)
+		else:
+			switch_state(STATE.FALL)

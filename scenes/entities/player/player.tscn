@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://77bt1by2w4ol" path="res://assets/characters/player/idle.png" id="1_nh4ur"]
 [ext_resource type="Script" uid="uid://dbwopvptbmy1s" path="res://components/health_component/health_component.gd" id="2_70kwc"]
 [ext_resource type="PackedScene" uid="uid://dsicpwtijfqmj" path="res://scenes/ui/health_bar/health_bar.tscn" id="2_pcd0u"]
+[ext_resource type="PackedScene" uid="uid://dxvaf4chennmy" path="res://scenes/entities/player/ghost.tscn" id="2_w3p2j"]
 [ext_resource type="Texture2D" uid="uid://0osm4dv0gbhv" path="res://assets/characters/player/holding_gun/double_jump.png" id="3_ovg4i"]
 [ext_resource type="Texture2D" uid="uid://bkmoldn7j47lf" path="res://assets/characters/player/attack_1.png" id="3_xy2vv"]
 [ext_resource type="Texture2D" uid="uid://dssvwafl8gsgo" path="res://assets/characters/player/holding_gun/falling.png" id="4_5sj0x"]
@@ -16,7 +17,6 @@
 [ext_resource type="Texture2D" uid="uid://civupnxbto2se" path="res://assets/characters/player/wall_slidingl.png" id="9_7wli1"]
 [ext_resource type="Script" uid="uid://dky2eduxwjfdm" path="res://scenes/entities/player/camera.gd" id="10_ovg4i"]
 [ext_resource type="Script" uid="uid://tfp07ctg4sf3" path="res://components/hurtbox_component/hurtbox_component.gd" id="13_r4dfn"]
-[ext_resource type="Shader" uid="uid://dtfdwv8q5xwyj" path="res://resources/shaders/hit_flash.tres" id="16_pcd0u"]
 
 [sub_resource type="Animation" id="Animation_1murt"]
 length = 0.001
@@ -131,62 +131,62 @@ tracks/8/keys = {
 tracks/9/type = "value"
 tracks/9/imported = false
 tracks/9/enabled = true
-tracks/9/path = NodePath("Visuals/Sprite2D:material:shader_parameter/Enable")
+tracks/9/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:scale")
 tracks/9/interp = 1
 tracks/9/loop_wrap = true
 tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Vector2(1, 1)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
 tracks/10/enabled = true
-tracks/10/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:material:shader_parameter/Enable")
+tracks/10/path = NodePath("HurtboxComponent:monitoring")
 tracks/10/interp = 1
 tracks/10/loop_wrap = true
 tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [false]
+"values": [true]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
 tracks/11/enabled = true
-tracks/11/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:scale")
+tracks/11/path = NodePath("HurtboxComponent:monitorable")
 tracks/11/interp = 1
 tracks/11/loop_wrap = true
 tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(1, 1)]
+"update": 1,
+"values": [true]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
 tracks/12/enabled = true
-tracks/12/path = NodePath("HurtboxComponent:monitoring")
+tracks/12/path = NodePath("Visuals/Sprite2D:modulate")
 tracks/12/interp = 1
 tracks/12/loop_wrap = true
 tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
 tracks/13/enabled = true
-tracks/13/path = NodePath("HurtboxComponent:monitorable")
+tracks/13/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:modulate")
 tracks/13/interp = 1
 tracks/13/loop_wrap = true
 tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_knby6"]
@@ -293,30 +293,6 @@ tracks/3/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector2(0, -24)]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("HurtboxComponent:monitoring")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.25),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [false, true]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("HurtboxComponent:monitorable")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 0.25),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [false, true]
 }
 
 [sub_resource type="Animation" id="Animation_18p7g"]
@@ -496,30 +472,6 @@ tracks/6/keys = {
 "update": 1,
 "values": [false, true, false]
 }
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("HurtboxComponent:monitoring")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("HurtboxComponent:monitorable")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
 
 [sub_resource type="Animation" id="Animation_5sj0x"]
 resource_name = "falling"
@@ -622,30 +574,6 @@ tracks/7/keys = {
 "update": 1,
 "values": [false]
 }
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("HurtboxComponent:monitoring")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/9/type = "value"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("HurtboxComponent:monitorable")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
 
 [sub_resource type="Animation" id="Animation_fg2wu"]
 resource_name = "hit"
@@ -654,74 +582,74 @@ step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Visuals/Sprite2D:material:shader_parameter/Enable")
-tracks/0/interp = 1
+tracks/0/path = NodePath("Visuals/Sprite2D:scale")
+tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [true, false]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:material:shader_parameter/Enable")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [true, false]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Visuals/Sprite2D:scale")
-tracks/2/interp = 2
-tracks/2/loop_wrap = true
-tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Vector2(0.75, 1.2), Vector2(1, 1)]
 }
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:scale")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
 "times": PackedFloat32Array(0, 0.1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Vector2(0.8, 1.2), Vector2(1, 1)]
 }
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("HurtboxComponent:monitoring")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("HurtboxComponent:monitoring")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
 "values": [false, true]
 }
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("HurtboxComponent:monitorable")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Visuals/Sprite2D:modulate")
+tracks/4/interp = 0
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(18.892157, 18.892157, 18.892157, 1), Color(1, 1, 1, 1)]
+}
 tracks/5/type = "value"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("HurtboxComponent:monitorable")
+tracks/5/path = NodePath("Visuals/WeaponRoot/WeaponAnimationRoot/Sprite2D:modulate")
 tracks/5/interp = 1
 tracks/5/loop_wrap = true
 tracks/5/keys = {
 "times": PackedFloat32Array(0, 0.1),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [false, true]
+"update": 0,
+"values": [Color(18.892157, 18.892157, 18.892157, 1), Color(1, 1, 1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_ovg4i"]
@@ -825,30 +753,6 @@ tracks/7/keys = {
 "update": 1,
 "values": [false]
 }
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("HurtboxComponent:monitoring")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/9/type = "value"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("HurtboxComponent:monitorable")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
 
 [sub_resource type="Animation" id="Animation_7wli1"]
 resource_name = "jump"
@@ -923,7 +827,7 @@ tracks/5/loop_wrap = true
 tracks/5/keys = {
 "times": PackedFloat32Array(0, 0.1),
 "transitions": PackedFloat32Array(1, 1),
-"update": 0,
+"update": 1,
 "values": [Vector2(1, 2), Vector2(0, 1)]
 }
 tracks/6/type = "value"
@@ -937,30 +841,6 @@ tracks/6/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("HurtboxComponent:monitoring")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("HurtboxComponent:monitorable")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
 }
 
 [sub_resource type="Animation" id="Animation_yywfu"]
@@ -1068,30 +948,6 @@ tracks/5/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
 "values": [Vector2(0, 0), Vector2(-1, 1), Vector2(0, 0), Vector2(-1, 1), Vector2(0, 0)]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("HurtboxComponent:monitoring")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("HurtboxComponent:monitorable")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
 }
 
 [sub_resource type="Animation" id="Animation_pcd0u"]
@@ -1278,20 +1134,11 @@ radius = 5.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_nh4ur"]
 radius = 6.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_w3p2j"]
-shader = ExtResource("16_pcd0u")
-shader_parameter/Enable = false
-shader_parameter/ColorParameter = Color(18.892157, 18.892157, 18.892157, 1)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7dqom"]
-shader = ExtResource("16_pcd0u")
-shader_parameter/Enable = false
-shader_parameter/ColorParameter = Color(18.892157, 18.892157, 18.892157, 1)
-
 [node name="Player" type="CharacterBody2D" unique_id=1054921170 groups=["player"]]
 z_index = 1
 collision_layer = 2
 script = ExtResource("1_bjvvg")
+ghost_node = ExtResource("2_w3p2j")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1654631562]
 
@@ -1302,46 +1149,54 @@ offset_top = 4.0
 offset_right = 4.0
 offset_bottom = 4.0
 
-[node name="CoyoteTimer" type="Timer" parent="." unique_id=1061782584]
+[node name="Timers" type="Node" parent="." unique_id=2884436]
+
+[node name="CoyoteTimer" type="Timer" parent="Timers" unique_id=1061782584]
 unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.15
 one_shot = true
 
-[node name="DashCooldown" type="Timer" parent="." unique_id=466703238]
+[node name="DashCooldown" type="Timer" parent="Timers" unique_id=466703238]
 unique_name_in_owner = true
 process_callback = 0
-wait_time = 0.1
+wait_time = 0.5
 one_shot = true
 
-[node name="FireRateTimer" type="Timer" parent="." unique_id=166848343]
+[node name="FireRateTimer" type="Timer" parent="Timers" unique_id=166848343]
 unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.25
 one_shot = true
 
-[node name="HardLandingTimer" type="Timer" parent="." unique_id=1006512574]
+[node name="HardLandingTimer" type="Timer" parent="Timers" unique_id=1006512574]
 unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.15
 one_shot = true
 
-[node name="JumpBufferTimer" type="Timer" parent="." unique_id=2037059810]
+[node name="JumpBufferTimer" type="Timer" parent="Timers" unique_id=2037059810]
 unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.1
 one_shot = true
 
-[node name="DashBufferTimer" type="Timer" parent="." unique_id=928856832]
+[node name="DashBufferTimer" type="Timer" parent="Timers" unique_id=928856832]
 unique_name_in_owner = true
 process_callback = 0
 wait_time = 0.1
+one_shot = true
+
+[node name="DashInvincibilityTimer" type="Timer" parent="Timers" unique_id=1805767685]
+unique_name_in_owner = true
+process_callback = 0
+wait_time = 0.25
 one_shot = true
 
 [node name="HealthComponent" type="Node" parent="." unique_id=819351444]
 unique_name_in_owner = true
 script = ExtResource("2_70kwc")
-max_health = 3
+max_health = 10
 metadata/_custom_type_script = "uid://dbwopvptbmy1s"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1153200282]
@@ -1402,7 +1257,6 @@ unique_name_in_owner = true
 
 [node name="Sprite2D" type="Sprite2D" parent="Visuals" unique_id=754681786]
 unique_name_in_owner = true
-material = SubResource("ShaderMaterial_w3p2j")
 texture = ExtResource("1_nh4ur")
 offset = Vector2(0, -24)
 hframes = 8
@@ -1415,7 +1269,6 @@ position = Vector2(6, -4)
 
 [node name="Sprite2D" type="Sprite2D" parent="Visuals/WeaponRoot/WeaponAnimationRoot" unique_id=1960554046]
 texture_filter = 1
-material = SubResource("ShaderMaterial_7dqom")
 texture = ExtResource("7_1murt")
 centered = false
 offset = Vector2(-6, -10)
@@ -1435,4 +1288,5 @@ unique_name_in_owner = true
 position = Vector2(0, -11)
 target_position = Vector2(-10, 0)
 
-[connection signal="timeout" from="HardLandingTimer" to="." method="_on_hard_landing_timer_timeout"]
+[connection signal="timeout" from="Timers/HardLandingTimer" to="." method="_on_hard_landing_timer_timeout"]
+[connection signal="timeout" from="Timers/DashInvincibilityTimer" to="." method="_on_dash_invincibility_timer_timeout"]
